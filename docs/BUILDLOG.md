@@ -49,3 +49,19 @@ Format
 - Follow‑ups
   - Run Manus and mgx.dev; revise docs/01, docs/03, docs/06 to v1.1 with citations
   - Prepare ADRs 0001–0003 in Packet 6/7
+
+  2025-10-08 • WU‑006 • rick1330/flakeradar-program • Risks, Compliance, Community governance
+- What/Why
+  - Captured program/product risks with mitigations; codified privacy-by-design, telemetry policy, retention; established CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GOVERNANCE; set default CODEOWNERS and PR template to enable healthy OSS contributions.
+- Artifacts/Links
+  - Added: docs/05-risk-register.md
+  - Added: docs/06-compliance-brief.md
+  - Added: CONTRIBUTING.md
+  - Added: CODE_OF_CONDUCT.md
+  - Added: SECURITY.md
+  - Added: GOVERNANCE.md
+  - Added: .github/CODEOWNERS
+  - Added: .github/PULL_REQUEST_TEMPLATE.md
+- Follow-ups
+  - Add ADR: adopt DCO vs CLA (Proposed)
+  - Confirm enforcement contacts (conduct@/security@) or switch to GitHub forms only
