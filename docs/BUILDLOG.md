@@ -36,3 +36,12 @@ Format
 - Follow‑ups
   - Proceed to WU‑004: Architecture Brief v0.1
   - Prepare ADRs 0001–0003 in upcoming packets
+
+  2025-10-08 • WU‑004 • rick1330/flakeradar-program • Architecture Brief v0.1 (C4, ingestion, scoring, PR bot, ER model, budgets)
+- What/Why
+  - Outlined a pragmatic container model using Next.js API routes, a TS parser/scorer, Postgres storage, and a minimal GitHub App for PR comments/labels. Established ingestion/API contracts, scoring formula v0.1, ER model, and privacy/security budgets to enable Gate C thin E2E.
+- Artifacts/Links
+  - Added: docs/03-architecture-brief.md
+- Follow‑ups
+  - Draft ADRs: 0001 project name/scope; 0002 OSS license; 0003 standalone MVP hosted later
+  - Proceed to WU‑005: Tool Playbook (prompts)
