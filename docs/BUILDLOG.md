@@ -18,3 +18,12 @@ Format
   - Decisions: none (ADR index only)
 - Follow‑ups
   - Next WUs: WU‑002 Charter; WU‑003 Governance [ASSUMPTION: Execution Plan will be delivered as WU‑003 per packet plan]
+
+2025-10-08 • WU‑002 • rick1330/flakeradar-program • Add Program Charter (vision, OKRs, constraints, governance, quality bars)
+- What/Why
+  - Captured scope and non‑goals for the MVP; set quality/security/privacy budgets; defined OSS governance and Gate A approval checklist to guide subsequent execution.
+- Artifacts/Links
+  - Added: docs/01-charter.md
+- Follow‑ups
+  - Align next WU naming with packet plan: WU‑003 will be Execution Plan (was “Governance” in seed) [ASSUMPTION]
+  - Draft ADRs 0001–0003 alongside Execution Plan
