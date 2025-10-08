@@ -68,9 +68,17 @@ jobs:
         run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
       - name: Apply seeding (create/update/close)
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
           CLOSE_MISSING: "1"
-        run: bash scripts/seed-issues.sh
+        run: |
+          # Use GH_TOKEN_SEED if available (for cross-repo operations), otherwise fall back to GITHUB_TOKEN
+          if [ "${{ secrets.GH_TOKEN_SEED != '' }}" == "true" ]; then
+            export GH_TOKEN="${{ secrets.GH_TOKEN_SEED }}"
+            echo "Using GH_TOKEN_SEED for cross-repo operations"
+          else
+            export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
+            echo "Notice: Using GITHUB_TOKEN (limited to same repo only) - for cross-repo support, add GH_TOKEN_SEED secret"
+          fi
+          bash scripts/seed-issues.sh
       - name: Commit updated issues/map.json (if changed)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
