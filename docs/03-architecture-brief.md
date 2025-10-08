@@ -1,4 +1,3 @@
-FILE: docs/03-architecture-brief.md
 # FlakeRadar — Architecture Brief v0.1 (Gate A)
 
 Status

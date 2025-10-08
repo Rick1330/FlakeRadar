@@ -15,7 +15,6 @@ Format
   - Created Gate A program repo structure for FlakeRadar (OSS). Seeded README, license, ignore rules, Build Log, ADR index, and session state to enable resume‑safe execution.
 - Artifacts/Links
   - Files: README.md, LICENSE, .gitignore, docs/BUILDLOG.md, docs/DECISIONS.md, docs/SESSION_STATE.json
-  - Decisions: none (ADR index only)
 - Follow‑ups
   - Next WUs: WU‑002 Charter; WU‑003 Governance [ASSUMPTION: Execution Plan will be delivered as WU‑003 per packet plan]
 
@@ -24,24 +23,29 @@ Format
   - Captured scope and non‑goals for the MVP; set quality/security/privacy budgets; defined OSS governance and Gate A approval checklist to guide subsequent execution.
 - Artifacts/Links
   - Added: docs/01-charter.md
-- Follow‑ups
-  - Align next WU naming with packet plan: WU‑003 will be Execution Plan (was “Governance” in seed) [ASSUMPTION]
-  - Draft ADRs 0001–0003 alongside Execution Plan
 
-  2025-10-08 • WU‑003 • rick1330/flakeradar-program • Add Execution Plan (WUs, gates, kickoff, RACI, subtree, community milestones)
+2025-10-08 • WU‑003 • rick1330/flakeradar-program • Add Execution Plan (WUs, gates, kickoff, RACI, subtree, community milestones)
 - What/Why
   - Established resume‑safe WU map across Gates A–D; defined 10‑day kickoff, roles (RACI), repo/subtree plan, and community milestones to guide a predictable OSS delivery.
 - Artifacts/Links
   - Added: docs/02-execution-plan.md
-- Follow‑ups
-  - Proceed to WU‑004: Architecture Brief v0.1
-  - Prepare ADRs 0001–0003 in upcoming packets
 
-  2025-10-08 • WU‑004 • rick1330/flakeradar-program • Architecture Brief v0.1 (C4, ingestion, scoring, PR bot, ER model, budgets)
+2025-10-08 • WU‑004 • rick1330/flakeradar-program • Architecture Brief v0.1 (C4, ingestion, scoring, PR bot, ER model, budgets)
 - What/Why
   - Outlined a pragmatic container model using Next.js API routes, a TS parser/scorer, Postgres storage, and a minimal GitHub App for PR comments/labels. Established ingestion/API contracts, scoring formula v0.1, ER model, and privacy/security budgets to enable Gate C thin E2E.
 - Artifacts/Links
   - Added: docs/03-architecture-brief.md
+
+2025-10-08 • WU‑005 • rick1330/flakeradar-program • Tool Playbook + prompts (Manus, mgx.dev, Lindy, Qoder, emergent)
+- What/Why
+  - Created actionable prompts for research (Manus), PRD (mgx.dev), UI/web scaffolding (Lindy), and execution (Qoder/emergent). Documented GitHub setup: branch protections, Dependabot, CodeQL, labels, Discussions. This unblocks Gate A completion and sets up Gate B.
+- Artifacts/Links
+  - Added: docs/04-tool-playbook.md
+  - Added: playbooks/manus-prompt.md
+  - Added: playbooks/mgx-prompt.md
+  - Added: playbooks/lindy-ui-prompt.md
+  - Added: playbooks/qoder-executor-prompt.md
+  - Added: playbooks/emergent-executor-prompt.md
 - Follow‑ups
-  - Draft ADRs: 0001 project name/scope; 0002 OSS license; 0003 standalone MVP hosted later
-  - Proceed to WU‑005: Tool Playbook (prompts)
+  - Run Manus and mgx.dev; revise docs/01, docs/03, docs/06 to v1.1 with citations
+  - Prepare ADRs 0001–0003 in Packet 6/7
