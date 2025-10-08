@@ -80,3 +80,15 @@ Format
 - Follow-ups
   - Run Manus and mgx.dev; revise docs to v1.1 and raise ADRs as needed
   - Create UI/web repos and apply protections/CI (Gate B)
+
+2025-10-08 • WU‑008 • rick1330/flakeradar-program • Production‑grade issue seeding (schema + script + CI + docs)
+- What/Why
+  - Added JSON Schema for issues/seed.json; robust seeding script with multi‑repo, DRY_RUN, CLOSE_MISSING, milestones/projects, standardized labels, rate‑limit retries; CI workflow for PR dry‑run and main apply; documentation.
+- Artifacts/Links
+  - Added: schemas/issues.seed.schema.json
+  - Added: scripts/seed-issues.sh
+  - Added: .github/workflows/seed-issues.yml
+  - Added: docs/ISSUE_SEEDING.md
+- Follow-ups
+  - Create org/user Project "FlakeRadar Roadmap" (if not present) or set PROJECT_NUMBER
+  - Add GH_TOKEN_SEED secret with repo+project scopes for cross‑repo writes

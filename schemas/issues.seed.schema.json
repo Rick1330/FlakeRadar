@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "FlakeRadar Issue Seed Schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["epics", "stories"],
+  "properties": {
+    "epics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/epic"
+      }
+    },
+    "stories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/story"
+      }
+    }
+  },
+  "$defs": {
+    "labels": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "assignees": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "number": { "type": "integer", "minimum": 1 },
+        "title": { "type": "string", "minLength": 1 }
+      },
+      "anyOf": [
+        { "required": ["owner", "number"] },
+        { "required": ["owner", "title"] }
+      ]
+    },
+    "epic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "labels", "body"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^EP-[0-9]{3,}$" },
+        "title": { "type": "string", "minLength": 3 },
+        "labels": { "$ref": "#/$defs/labels" },
+        "body": { "type": "string", "minLength": 5 },
+        "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+        "milestone": { "type": "string" },
+        "project": { "$ref": "#/$defs/project" },
+        "assignees": { "$ref": "#/$defs/assignees" },
+        "adrLinks": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri-reference" }
+        }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "epicId", "title", "labels", "acceptanceCriteria"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^ST-[0-9]{3,}$" },
+        "epicId": { "type": "string", "pattern": "^EP-[0-9]{3,}$" },
+        "title": { "type": "string", "minLength": 3 },
+        "labels": { "$ref": "#/$defs/labels" },
+        "wu": { "type": "string", "pattern": "^WU-[0-9]{3,}$" },
+        "acceptanceCriteria": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 3 }
+        },
+        "repo": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+        "milestone": { "type": "string" },
+        "project": { "$ref": "#/$defs/project" },
+        "assignees": { "$ref": "#/$defs/assignees" },
+        "adrLinks": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri-reference" }
+        },
+        "dod": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 3 }
+        }
+      }
+    }
+  }
+}
