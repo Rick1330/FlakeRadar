@@ -27,3 +27,12 @@ Format
 - Follow‑ups
   - Align next WU naming with packet plan: WU‑003 will be Execution Plan (was “Governance” in seed) [ASSUMPTION]
   - Draft ADRs 0001–0003 alongside Execution Plan
+
+  2025-10-08 • WU‑003 • rick1330/flakeradar-program • Add Execution Plan (WUs, gates, kickoff, RACI, subtree, community milestones)
+- What/Why
+  - Established resume‑safe WU map across Gates A–D; defined 10‑day kickoff, roles (RACI), repo/subtree plan, and community milestones to guide a predictable OSS delivery.
+- Artifacts/Links
+  - Added: docs/02-execution-plan.md
+- Follow‑ups
+  - Proceed to WU‑004: Architecture Brief v0.1
+  - Prepare ADRs 0001–0003 in upcoming packets
