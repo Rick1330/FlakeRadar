@@ -1,0 +1,46 @@
+FILE: .gitignore
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors/IDE
+.vscode/
+.idea/
+*.swp
+
+# Node/JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnpm-store/
+
+# Env/config
+.env
+.env.*
+!.env.example
+
+# Build/output
+dist/
+build/
+.next/
+out/
+coverage/
+storybook-static/
+
+# Caches
+.cache/
+.next/cache/
+turbo/
+.nx/
+.tmp/
+*.tsbuildinfo
+
+# Misc
+*.log
+logs/
+.cypress/
+playwright-report/
