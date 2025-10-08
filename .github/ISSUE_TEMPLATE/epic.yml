@@ -1,0 +1,70 @@
+name: Epic
+description: Track an initiative across gates and modules with goals, scope, and measurable outcomes.
+title: "EPIC: <short name>"
+labels:
+  - discussion
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this epic to coordinate stories across gates (A–D). Add labels like gate:*, module:*, persona:* after creation.
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing the epic.
+      placeholder: e.g., Gate C Thin E2E (ingest → score → PR comment)
+    validations:
+      required: true
+  - type: textarea
+    id: goals
+    attributes:
+      label: Goals / OKRs
+      description: What outcomes should this epic achieve? Tie to OKRs if applicable.
+      placeholder: |
+        - Ship thin E2E scenario
+        - Keep CI green while enforcing budgets
+  - type: checkboxes
+    id: gates
+    attributes:
+      label: Gates
+      description: Which gates does this epic span?
+      options:
+        - label: Gate A
+        - label: Gate B
+        - label: Gate C
+        - label: Gate D
+  - type: dropdown
+    id: modules
+    attributes:
+      label: Modules (multi-select)
+      multiple: true
+      options:
+        - ingest
+        - scoring
+        - ui
+        - bot
+        - docs
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope / Out of scope
+      placeholder: |
+        In:
+        - ...
+        Out:
+        - ...
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Acceptance Metrics
+      description: Measurable outcomes (include budgets).
+      placeholder: |
+        - Ingest p95 < 2s for 5MB
+        - jest-axe zero violations on polished pages
+        - Entry bundle <150KB gz
+  - type: input
+    id: target
+    attributes:
+      label: Target date
+      placeholder: YYYY-MM-DD

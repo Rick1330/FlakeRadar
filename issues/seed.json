@@ -1,0 +1,273 @@
+{
+  "epics": [
+    {
+      "id": "EP-001",
+      "title": "Gate A: Program docs complete & PRD v1.0",
+      "labels": ["gate:A", "module:docs"],
+      "body": "Deliver Charter, Execution Plan, Architecture Brief v0.1, Tool Playbook, Risk & Compliance, Governance, Issue templates/seed, Session Handoff; produce PRD v1.0 via mgx.dev."
+    },
+    {
+      "id": "EP-002",
+      "title": "Gate B: UI library v0.1.0 + Web app Option A (CI green; budgets)",
+      "labels": ["gate:B", "module:ui", "module:docs"],
+      "body": "Build @flakeradar/ui and Next.js app shells with CI, a11y/perf/security budgets enforced."
+    },
+    {
+      "id": "EP-003",
+      "title": "Gate C: Monorepo + Thin E2E (ingest → score → PR comment)",
+      "labels": ["gate:C", "module:ingest", "module:scoring", "module:bot"],
+      "body": "Scaffold Nx monorepo; implement ingestion + scoring; minimal PR bot; thin E2E demo."
+    },
+    {
+      "id": "EP-004",
+      "title": "Gate D: Community launch + CLI + integrations",
+      "labels": ["gate:D", "module:docs"],
+      "body": "Ship CLI, Slack/webhook alerts, docs site, additional CI/framework integrations; grow community."
+    }
+  ],
+  "stories": [
+    {
+      "id": "ST-001",
+      "epicId": "EP-001",
+      "title": "Charter ready (vision, OKRs, constraints, governance, quality bars)",
+      "labels": ["gate:A", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-002",
+      "acceptanceCriteria": [
+        "docs/01-charter.md present and complete",
+        "Quality bars (a11y/perf/security/privacy) listed and non-negotiable",
+        "Governance model captured"
+      ]
+    },
+    {
+      "id": "ST-002",
+      "epicId": "EP-001",
+      "title": "Execution Plan (WUs, gates, kickoff, RACI, subtree, community milestones)",
+      "labels": ["gate:A", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-003",
+      "acceptanceCriteria": [
+        "docs/02-execution-plan.md present",
+        "10-day kickoff defined",
+        "RACI roles assigned",
+        "Subtree import plan documented"
+      ]
+    },
+    {
+      "id": "ST-003",
+      "epicId": "EP-001",
+      "title": "Architecture Brief v0.1",
+      "labels": ["gate:A", "persona:dev", "module:ingest", "module:scoring", "module:bot", "priority:p1"],
+      "wu": "WU-004",
+      "acceptanceCriteria": [
+        "C4 L1/L2 ASCII diagrams embedded",
+        "Ingestion API contract defined",
+        "Scoring heuristics v0.1 formula defined",
+        "ER outline for Repo/TestCase/TestRun/FlakeScore/OwnerMap",
+        "Budgets restated (a11y/perf/security/privacy)"
+      ]
+    },
+    {
+      "id": "ST-004",
+      "epicId": "EP-001",
+      "title": "Tool Playbook + prompts",
+      "labels": ["gate:A", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-005",
+      "acceptanceCriteria": [
+        "docs/04-tool-playbook.md present",
+        "playbooks for Manus, mgx.dev, Lindy, Qoder, emergent present",
+        "GitHub setup steps specified (protections, CodeQL, Dependabot)"
+      ]
+    },
+    {
+      "id": "ST-005",
+      "epicId": "EP-001",
+      "title": "Risks, Compliance, and Community governance",
+      "labels": ["gate:A", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-006",
+      "acceptanceCriteria": [
+        "docs/05-risk-register.md present with top risks and mitigations",
+        "docs/06-compliance-brief.md present (privacy-by-design, telemetry policy, retention)",
+        "CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GOVERNANCE present",
+        "CODEOWNERS and PR template added"
+      ]
+    },
+    {
+      "id": "ST-006",
+      "epicId": "EP-001",
+      "title": "Issue templates + seed + session handoff",
+      "labels": ["gate:A", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-007",
+      "acceptanceCriteria": [
+        "Issue forms (epic/story/bug) under .github/ISSUE_TEMPLATE",
+        "issues/seed.json present (epics/stories mapped to WUs/gates)",
+        "docs/SESSION_HANDOFF.md present",
+        "docs/EXEC_SUMMARY.md and docs/NEXT_ACTIONS.md present"
+      ]
+    },
+    {
+      "id": "ST-101",
+      "epicId": "EP-002",
+      "title": "@flakeradar/ui repo created with CI and a11y baseline",
+      "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
+      "wu": "WU-101",
+      "acceptanceCriteria": [
+        "Public repo rick1330/flakeradar-ui created",
+        "CI 'ci' workflow runs typecheck/lint/test/build/a11y",
+        "Storybook with a11y add-on; core stories pass jest-axe",
+        "Package.json name '@flakeradar/ui'; publishable to GitHub Packages"
+      ]
+    },
+    {
+      "id": "ST-102",
+      "epicId": "EP-002",
+      "title": "Core components shipped (a11y-first)",
+      "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
+      "wu": "WU-102",
+      "acceptanceCriteria": [
+        "Button, Input, Select, Tabs, Table, Alert, Dialog, Badge, Tooltip implemented",
+        "jest-axe zero violations on stories",
+        "Bundle size within limits"
+      ]
+    },
+    {
+      "id": "ST-103",
+      "epicId": "EP-002",
+      "title": "Next.js app scaffold with budgets and CSP",
+      "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
+      "wu": "WU-103",
+      "acceptanceCriteria": [
+        "App Router scaffold with /, /ingest, /dashboard routes",
+        "next-safe-middleware CSP configured",
+        "Entry bundle <150KB gz (size-limit CI)"
+      ]
+    },
+    {
+      "id": "ST-104",
+      "epicId": "EP-002",
+      "title": "CI wiring + branch protections",
+      "labels": ["gate:B", "persona:em", "module:docs", "priority:p1"],
+      "wu": "WU-104",
+      "acceptanceCriteria": [
+        "CI 'ci' + CodeQL required on main",
+        "Dependabot enabled",
+        "License scanning allowlist applied"
+      ]
+    },
+    {
+      "id": "ST-201",
+      "epicId": "EP-003",
+      "title": "Nx monorepo scaffold and subtree imports",
+      "labels": ["gate:C", "persona:dev", "module:docs", "priority:p1"],
+      "wu": "WU-201",
+      "acceptanceCriteria": [
+        "Repo rick1330/flakeradar created (Nx)",
+        "Subtree add packages/ui and apps/web",
+        "CI matrix green"
+      ]
+    },
+    {
+      "id": "ST-202",
+      "epicId": "EP-003",
+      "title": "Data model + migrations",
+      "labels": ["gate:C", "persona:dev", "module:scoring", "priority:p1"],
+      "wu": "WU-202",
+      "acceptanceCriteria": [
+        "SQL migrations for Repo, TestCase, TestRun, FlakeScore, OwnerMap",
+        "Indexes as per Architecture Brief",
+        "Seed scripts with sample test data"
+      ]
+    },
+    {
+      "id": "ST-203",
+      "epicId": "EP-003",
+      "title": "Ingestion pipeline (GitHub Actions → /api/ingest)",
+      "labels": ["gate:C", "persona:dev", "module:ingest", "priority:p1"],
+      "wu": "WU-203",
+      "acceptanceCriteria": [
+        "Parsers for JUnit/Jest/PyTest",
+        "POST /api/ingest accepts up to 5MB and returns stats",
+        "Idempotency by (repo_id, commit_sha, run_id)"
+      ]
+    },
+    {
+      "id": "ST-204",
+      "epicId": "EP-003",
+      "title": "Scoring heuristics v0.1 library",
+      "labels": ["gate:C", "persona:dev", "module:scoring", "priority:p1"],
+      "wu": "WU-204",
+      "acceptanceCriteria": [
+        "Implements pass_rate, volatility, recency_fail, clustering",
+        "Outputs score 0–100 and class",
+        "Unit tests with golden cases"
+      ]
+    },
+    {
+      "id": "ST-205",
+      "epicId": "EP-003",
+      "title": "PR Quarantine Bot (minimal GitHub App)",
+      "labels": ["gate:C", "persona:dev", "module:bot", "priority:p1"],
+      "wu": "WU-205",
+      "acceptanceCriteria": [
+        "Single idempotent comment with marker",
+        "Label 'flaky-tests' applied conditionally",
+        "Rate-limited ≤10 writes/min/repo"
+      ]
+    },
+    {
+      "id": "ST-206",
+      "epicId": "EP-003",
+      "title": "Thin E2E (sample repo → ingest → score → PR comment)",
+      "labels": ["gate:C", "persona:qa", "module:ingest", "module:bot", "priority:p1"],
+      "wu": "WU-206",
+      "acceptanceCriteria": [
+        "Demo workflow in a sample repo posts to /api/ingest",
+        "PR shows comment and label when F≥60",
+        "CI green across repos"
+      ]
+    },
+    {
+      "id": "ST-301",
+      "epicId": "EP-004",
+      "title": "CLI ingest tool",
+      "labels": ["gate:D", "persona:dev", "module:ingest", "priority:p2"],
+      "wu": "WU-301",
+      "acceptanceCriteria": [
+        "CLI streams JUnit/Jest/PyTest to /api/ingest",
+        "Docs and examples provided"
+      ]
+    },
+    {
+      "id": "ST-302",
+      "epicId": "EP-004",
+      "title": "Slack/webhook alerts; owner hints",
+      "labels": ["gate:D", "persona:sre", "module:bot", "priority:p2"],
+      "wu": "WU-302",
+      "acceptanceCriteria": [
+        "Slack/webhook module posts summaries",
+        "Owner hints from CODEOWNERS/OwnerMap"
+      ]
+    },
+    {
+      "id": "ST-303",
+      "epicId": "EP-004",
+      "title": "Docs site + good-first-issues + roadmap",
+      "labels": ["gate:D", "persona:em", "module:docs", "priority:p2"],
+      "wu": "WU-303",
+      "acceptanceCriteria": [
+        "Docs site online with guides",
+        "At least 10 good-first-issues curated",
+        "Roadmap published in Discussions"
+      ]
+    },
+    {
+      "id": "ST-304",
+      "epicId": "EP-004",
+      "title": "Additional CI/framework integrations",
+      "labels": ["gate:D", "persona:dev", "module:ingest", "priority:p3"],
+      "wu": "WU-304",
+      "acceptanceCriteria": [
+        "Adapters for CircleCI/Gradle/Mocha",
+        "Examples and benchmarks provided"
+      ]
+    }
+  ]
+}
