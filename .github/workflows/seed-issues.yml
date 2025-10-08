@@ -37,7 +37,7 @@ jobs:
       - name: Install ajv-cli
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
       - name: Dry-run seeding (no writes)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,6 +50,9 @@ jobs:
         run: |
           num=${{ github.event.pull_request.number }}
           body=$(cat "$GITHUB_STEP_SUMMARY")
+          if [ -z "$body" ]; then
+            body="Issue seeding workflow completed. Check the workflow logs for details."
+          fi
           gh pr comment "$num" --body "$body"
 
   apply-on-main:

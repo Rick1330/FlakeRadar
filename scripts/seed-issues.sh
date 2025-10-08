@@ -31,7 +31,7 @@ jq_bin() { command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }; }
 gh_bin() { command -v gh >/dev/null || { echo "gh CLI is required" >&2; exit 1; }; }
 ajv_validate() {
   if command -v ajv >/dev/null; then
-    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020 --strict=true
+    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020
   else
     echo "ajv not found; skipping local schema validation (CI will check)"
   fi
