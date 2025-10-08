@@ -1,2 +1,20 @@
-# Default code owners
+# This file defines who owns what parts of the repository.
+# See https://help.github.com/articles/about-codeowners/ for more information.
+
+# Default owner
 * @rick1330
+
+# Documentation
+docs/ @rick1330
+README.md @rick1330
+LICENSE @rick1330
+
+# Issues and seeding
+issues/ @rick1330
+schemas/ @rick1330
+scripts/ @rick1330
+.github/workflows/seed-issues.yml @rick1330
+
+# GitHub configuration
+.github/ISSUE_TEMPLATE/ @rick1330
+.github/PULL_REQUEST_TEMPLATE.md @rick1330

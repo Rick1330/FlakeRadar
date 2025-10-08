@@ -92,3 +92,14 @@ Format
 - Follow-ups
   - Create org/user Project "FlakeRadar Roadmap" (if not present) or set PROJECT_NUMBER
   - Add GH_TOKEN_SEED secret with repo+project scopes for cross‑repo writes
+
+2025-10-08 • WU‑009 • rick1330/flakeradar-program • Fix Ajv strict schema + PR comment fallback
+- What/Why
+  - Resolved Ajv strictRequired error by restructuring project schema using oneOf with branch-local required; hardened PR workflow to always post a non-blank summary, even when validation fails.
+- Artifacts/Links
+  - Updated: schemas/issues.seed.schema.json
+  - Updated: .github/workflows/seed-issues.yml
+  - Updated: scripts/seed-issues.sh (minor robustness)
+- Follow-ups
+  - Ensure a Projects v2 board "FlakeRadar Roadmap" exists or set PROJECT_NUMBER in workflow env
+  - Add GH_TOKEN_SEED secret (repo + project scopes) for cross‑repo writes on main

@@ -1,1 +1,98 @@
-{}
+{
+  "EP-001": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 1
+  },
+  "EP-002": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 2
+  },
+  "EP-003": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 3
+  },
+  "EP-004": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 4
+  },
+  "ST-001": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 5
+  },
+  "ST-002": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 6
+  },
+  "ST-003": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 7
+  },
+  "ST-004": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 8
+  },
+  "ST-005": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 9
+  },
+  "ST-006": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 10
+  },
+  "ST-101": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 11
+  },
+  "ST-102": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 12
+  },
+  "ST-103": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 13
+  },
+  "ST-104": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 14
+  },
+  "ST-201": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 15
+  },
+  "ST-202": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 16
+  },
+  "ST-203": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 17
+  },
+  "ST-204": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 18
+  },
+  "ST-205": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 19
+  },
+  "ST-206": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 20
+  },
+  "ST-301": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 21
+  },
+  "ST-302": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 22
+  },
+  "ST-303": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 23
+  },
+  "ST-304": {
+    "repo": "rick1330/flakeradar-program",
+    "number": 24
+  }
+}

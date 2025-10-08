@@ -1,69 +1,86 @@
-# Issue Seeding (Production‑grade)
+# Issue Seeding Documentation
 
-Overview
-- Single source of truth: issues/seed.json
-- Enforced structure: schemas/issues.seed.schema.json (validated by CI)
-- Automation: scripts/seed-issues.sh + .github/workflows/seed-issues.yml
-- Multi‑repo: set "repo" per item or default to REPO_DEFAULT
-- Safety: DRY_RUN on PRs; apply on main only; rate‑limited; retries
-- Governance: standardized label taxonomy + colors; milestones (Gate A–D, Sprint‑xx); Projects v2 Roadmap
+This document explains how the FlakeRadar issue seeding system works, including the schema, script, and CI workflow.
 
-Usage (local)
-- Prereqs: gh (CLI), jq, Node 20+, ajv-cli (optional local)
-- Dry‑run:
-  DRY_RUN=1 bash scripts/seed-issues.sh
-- Apply:
-  GH_TOKEN=<repo-scoped token> CLOSE_MISSING=1 bash scripts/seed-issues.sh
+## Overview
 
-Key env vars
-- REPO_DEFAULT (default rick1330/flakeradar-program)
-- DRY_RUN=1 (no writes; prints plan)
-- CLOSE_MISSING=1 (closes issues no longer present; adds label "obsolete-by-seed")
-- PROJECT_OWNER=rick1330, PROJECT_TITLE="FlakeRadar Roadmap" (or set PROJECT_NUMBER)
-- TRANSFER_FALLBACK=1 (if creation in target repo fails, create in REPO_DEFAULT with a note)
+The issue seeding system automatically creates and updates GitHub issues based on a JSON seed file. It ensures consistency between the planned work (in [issues/seed.json](../issues/seed.json)) and the actual issues in the repository.
 
-Schema highlights (schemas/issues.seed.schema.json)
-- epics[].id: "EP-xxx"
-- stories[].id: "ST-xxx", .epicId: "EP-xxx"
-- Optional fields per item:
-  - repo: "owner/name"
-  - milestone: "Gate A" | "Gate B" | "Gate C" | "Gate D" | "Sprint-xx"
-  - project: { owner, title | number }
-  - assignees: ["githubUser"]
-  - adrLinks: ["url-or-path"]
-  - dod: override default DoD checklist
+## Components
 
-Bodies & templates (generated)
-- Epics: include DoD and ADR links
-- Stories: include Parent Epic link, WU mapping, Acceptance Criteria, DoD, ADR links
-- Marker: <!-- seed-id: EP-001 --> to keep idempotency (survives transfers)
+1. **Schema**: [schemas/issues.seed.schema.json](../schemas/issues.seed.schema.json) - Defines the structure and validation rules for the seed file
+2. **Script**: [scripts/seed-issues.sh](../scripts/seed-issues.sh) - Bash script that processes the seed file and interacts with GitHub
+3. **CI Workflow**: [.github/workflows/seed-issues.yml](../.github/workflows/seed-issues.yml) - Automates the seeding process on PRs and main branch pushes
+4. **Mapping File**: [issues/map.json](../issues/map.json) - Tracks the relationship between seed IDs and GitHub issue numbers
 
-CI behavior (.github/workflows/seed-issues.yml)
-- On PR touching seed/schema/script/workflow:
-  - Validate schema
-  - Dry‑run and post summary as PR comment
-- On main push:
-  - Validate schema
-  - Apply create/update/close
-  - Commit issues/map.json if changed
+## How It Works
 
-Security
-- Use a repo‑scoped token (GH_TOKEN_SEED) for cross‑repo writes.
-- GITHUB_TOKEN is sufficient for program‑repo only operations but cannot access other repos.
-- Least privilege: scopes repo + project are sufficient.
+### On Pull Requests
 
-Label taxonomy (standard colors)
-- good first issue, help wanted, discussion
-- gate:A/B/C/D
-- persona:dev/qa/sre/em
-- module:ingest/scoring/ui/bot/docs
-- priority:p1/p2/p3
-- obsolete-by-seed
+1. Validates the seed.json file against the schema
+2. Performs a dry-run of the seeding process (no actual GitHub changes)
+3. Comments on the PR with a summary of what would be created/updated
 
-Milestones & Projects
-- Milestones auto‑created: Gate A–D. You may specify Sprint‑xx per item; the script will create it if missing.
-- Roadmap: items are added to the user/org project PROJECT_TITLE (default: FlakeRadar Roadmap).
+### On Main Branch Pushes
 
-Cross‑repo consistency
-- Keep seed‑id markers on issue body; transfers preserve them.
-- issues/map.json tracks id → { repo, number } and is updated on every apply.
+1. Validates the seed.json file against the schema
+2. Creates/updates GitHub issues based on the seed file
+3. Closes issues that were removed from the seed file (if CLOSE_MISSING=1)
+4. Updates the mapping file with any new issue numbers
+5. Commits and pushes the updated mapping file
+
+## Seed File Structure
+
+The seed file contains two main sections:
+
+- **Epics**: High-level features or initiatives
+- **Stories**: Specific work items that belong to epics
+
+Each item can specify:
+- Repository target (defaults to REPO_DEFAULT)
+- Labels, milestones, and assignees
+- Project board placement
+- ADR (Architecture Decision Record) links
+
+## Features
+
+- **Multi-repo support**: Issues can be created in different repositories
+- **Standardized labels**: Automatically creates and maintains consistent labels with colors
+- **Milestone management**: Creates and assigns milestones
+- **Project board integration**: Adds issues to GitHub Projects v2
+- **Idempotent operations**: Safe to run multiple times
+- **Dry-run mode**: Preview changes without making them
+- **Close missing**: Automatically close issues removed from the seed
+- **Rate limiting**: Respects GitHub API limits with retries
+- **Error handling**: Graceful handling of failures
+
+## Environment Variables
+
+- `REPO_DEFAULT`: Default repository for issues (required)
+- `PROJECT_OWNER`: GitHub organization/user owning the project board
+- `PROJECT_TITLE`: Title of the project board to use
+- `PROJECT_NUMBER`: Specific project number (alternative to PROJECT_TITLE)
+- `DRY_RUN`: Set to "1" for preview mode
+- `CLOSE_MISSING`: Set to "1" to close removed issues
+- `TRANSFER_FALLBACK`: Set to "1" to create issues in default repo if target fails
+
+## Usage
+
+To run manually:
+```bash
+cd scripts
+./seed-issues.sh
+```
+
+For a dry run:
+```bash
+DRY_RUN=1 ./seed-issues.sh
+```
+
+## Troubleshooting
+
+If you encounter issues:
+1. Check that GH_TOKEN has appropriate permissions (repo, issues, projects)
+2. Verify the seed.json file validates against the schema
+3. Ensure the target repositories exist and are accessible
+4. Check that the project board exists if using project integration

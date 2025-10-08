@@ -24,6 +24,9 @@ Quick Start (for these docs)
 5) Check docs/05-risk-register.md and docs/06-compliance-brief.md before enabling telemetry or collecting data.  
 6) Open issues from issues/seed.json and follow the WU cadence (commit per WU, update Build Log, ADR if decision).
 
+Issue Seeding
+The repository includes an automated issue seeding system that creates and maintains GitHub issues based on the seed file. See [docs/ISSUE_SEEDING.md](docs/ISSUE_SEEDING.md) for details on how this works.
+
 Operating Principles (applies to all gates)
 - Resume‑safe WUs (15–45 min): each ends with commit, push, Build Log update; ADR if a decision.  
 - Quality bars: A11y WCAG 2.2 AA; Perf entry bundle <150KB gzipped; Security via CSP/CodeQL/Dependabot; Privacy minimal PII + opt‑in telemetry.  
@@ -36,6 +39,9 @@ Repository Map
 - docs/* — charter, execution plan, architecture, tool prompts, risks, compliance
 - playbooks/* — exact prompts for Manus, mgx.dev, Lindy, Qoder/Cursor, emergent.sh (added in later packets)
 - .github/* — issue templates, PR template, CODEOWNERS (added in later packets)
+- issues/seed.json — structured issue seed for automated creation
+- schemas/issues.seed.schema.json — JSON schema for validation
+- scripts/seed-issues.sh — automation script for issue creation
 
 Community Goals
 - Star‑worthy OSS with friendly onboarding

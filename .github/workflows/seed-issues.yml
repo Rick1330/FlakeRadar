@@ -19,6 +19,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: write
+  projects: write
 
 env:
   REPO_DEFAULT: rick1330/flakeradar-program
@@ -37,20 +38,37 @@ jobs:
       - name: Install ajv-cli
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+        id: validate
+        continue-on-error: true
+        run: |
+          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
       - name: Dry-run seeding (no writes)
+        if: steps.validate.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: "1"
         run: bash scripts/seed-issues.sh
+      - name: Prepare PR summary (validation failed)
+        if: steps.validate.outcome != 'success'
+        run: |
+          echo "### Issue Seed Validation Failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true 2>> "$GITHUB_STEP_SUMMARY" || true
+          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Please fix schemas/issues.seed.schema.json or issues/seed.json." >> "$GITHUB_STEP_SUMMARY"
       - name: Comment summary on PR
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           num=${{ github.event.pull_request.number }}
-          body=$(cat "$GITHUB_STEP_SUMMARY")
-          gh pr comment "$num" --body "$body"
+          if [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
+          else
+            gh pr comment "$num" --body "Seed workflow ran. See job logs for details."
+          fi
 
   apply-on-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -68,17 +86,9 @@ jobs:
         run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
       - name: Apply seeding (create/update/close)
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
           CLOSE_MISSING: "1"
-        run: |
-          # Use GH_TOKEN_SEED if available (for cross-repo operations), otherwise fall back to GITHUB_TOKEN
-          if [ "${{ secrets.GH_TOKEN_SEED != '' }}" == "true" ]; then
-            export GH_TOKEN="${{ secrets.GH_TOKEN_SEED }}"
-            echo "Using GH_TOKEN_SEED for cross-repo operations"
-          else
-            export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
-            echo "Notice: Using GITHUB_TOKEN (limited to same repo only) - for cross-repo support, add GH_TOKEN_SEED secret"
-          fi
-          bash scripts/seed-issues.sh
+        run: bash scripts/seed-issues.sh
       - name: Commit updated issues/map.json (if changed)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,33 +1,56 @@
-# Executive Summary — Gate A (FlakeRadar OSS)
+# Executive Summary
 
-What and Why
-- FlakeRadar is an open-source, CI‑native flaky test detection and remediation tool. It ingests JUnit/Jest/PyTest results from GitHub Actions, scores flakiness with transparent heuristics, comments on PRs to quarantine flaky tests, and provides dashboards and playbooks to guide fixes.
-- Purpose: showcase engineering craft, build community, and deliver a useful devtool that can evolve into a hosted offering.
+FlakeRadar is a CI-native flaky test detection and remediation platform for modern development teams. It helps engineering organizations reduce the time and cost associated with flaky tests by providing automated detection, transparent scoring, and actionable remediation guidance.
 
-Plan
-- Gate A (Weeks 1–2): Discovery + PRD (docs only)
-  - Deliverables: Charter, Execution Plan, Architecture Brief v0.1, Tool Playbook (prompts), Risk Register, Compliance Brief, Governance docs, Issue templates + seeds, Session Handoff.
-  - Tools: Manus (research) and mgx.dev (PRD v1.0). Outputs will trigger v1.1 updates to Charter, Architecture, and Compliance with citations.
-- Gate B (Weeks 3–8): Build @flakeradar/ui (a11y-first) and Next.js app Option A with CSP and budgets (entry <150KB gz).
-- Gate C (Weeks 9–12): Scaffold monorepo (Nx) and ship a thin E2E: ingest → score → PR comment/label, CI green.
-- Gate D (Weeks 13–16): Community launch with CLI, docs site, Slack/webhooks, and additional integrations.
+## Vision
 
-Budgets (non‑negotiable)
-- Accessibility: WCAG 2.2 AA; jest‑axe zero violations on polished pages.
-- Performance: entry bundle <150KB gz; API GET p95 <150ms; ingest p95 <2s for 5MB.
-- Security: CSP via next-safe-middleware; CodeQL weekly; Dependabot; protected main (ci + CodeQL, 1 review, linear history).
-- Privacy: minimal PII; opt‑in telemetry; 30‑day default retention for TestRun; delete-by-repo supported.
+Create a star-worthy open-source solution that helps teams detect, quarantine, and fix flaky tests with minimal overhead and maximum transparency.
 
-Key Risks & Mitigations
-- Signal quality across frameworks → rolling heuristics; golden test suite; explainable scores.
-- PR bot spam/rate limits → idempotent single comment and write limits.
-- OSS sustainability → good‑first‑issues, CONTRIBUTING, CODEOWNERS, Discussions; recruit co‑maintainers post Gate C.
-- Data privacy → redact stack traces by default; store minimal PII; deletion endpoint.
+## Key Features
 
-What Happens After Gate A Approval
-- Run Manus and mgx.dev using playbooks to generate Research Brief and PRD v1.0.
-- Executors create code repos (ui/web), enable CI/protections, and start Gate B WUs.
-- Orchestrator enforces budgets, maintains Build Log/ADRs, and prepares subtree plan for Gate C.
+1. **CI Integration**: Works with GitHub Actions, JUnit, Jest, PyTest and other popular test frameworks
+2. **Flake Scoring**: Transparent heuristics to score test flakiness over time
+3. **PR Quarantine Bot**: Automatically comments on and labels PRs with flaky tests
+4. **Dashboards & Playbooks**: Provides insights and remediation guidance for test owners
+5. **Privacy-First**: Collects minimal data and provides opt-in telemetry
 
-Assumptions to Validate
-- Node 20, pnpm; Postgres hosted (Neon/Supabase) for dev; telemetry disabled by default; GitHub App minimal permissions for PR bot.
+## Architecture Overview
+
+FlakeRadar follows a modular architecture:
+- **Ingestion Layer**: Parses test results from various CI systems
+- **Scoring Engine**: Applies transparent heuristics to identify flaky tests
+- **PR Bot**: Integrates with GitHub to comment and label PRs
+- **Dashboard**: Provides insights and remediation guidance
+- **Storage**: PostgreSQL for structured data storage
+
+## Quality Bars
+
+- **Accessibility**: WCAG 2.2 AA compliance
+- **Performance**: Entry bundle <150KB gzipped
+- **Security**: CSP, CodeQL, Dependabot protection
+- **Privacy**: Minimal PII collection with opt-in telemetry
+
+## Roadmap
+
+The FlakeRadar roadmap is divided into four gates:
+- **Gate A**: Program documentation and planning (Complete)
+- **Gate B**: UI library and web application scaffolding
+- **Gate C**: Monorepo implementation with thin E2E
+- **Gate D**: Community launch with CLI and integrations
+
+## Community Goals
+
+- Friendly onboarding experience for new contributors
+- Clear roadmap and well-labeled issues ("good first issue", "help wanted")
+- Active Discussions forum for proposals and Q&A
+- Transparent governance and release process
+
+## Next Steps
+
+With Gate A complete, the next phase involves:
+1. Creating UI library and web application repositories
+2. Implementing the ingestion and scoring engines
+3. Building the PR quarantine bot
+4. Developing dashboards and remediation playbooks
+
+For detailed next steps, see [docs/NEXT_ACTIONS.md](NEXT_ACTIONS.md).

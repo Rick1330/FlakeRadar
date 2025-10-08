@@ -1,34 +1,31 @@
 # Pull Request
 
-Summary
-- What does this change do? Why?
+## Description
 
-Related Issues
-- Closes #
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context.
 
-Work Unit
-- WU-ID: (e.g., WU-201)
+Fixes #(issue)
 
-Type
-- [ ] feat
-- [ ] fix
-- [ ] docs
-- [ ] chore
-- [ ] refactor
-- [ ] test
-- [ ] perf
-- [ ] ci
-- [ ] security
+## Type of Change
 
-Checklist
-- [ ] Conventional Commit in title/body; WU-ID included
-- [ ] Tests added/updated or N/A
-- [ ] Docs updated (README/CHANGELOG/ADR) or N/A
-- [ ] A11y: jest-axe passes on affected pages/components (if UI)
-- [ ] Perf: entry bundle stays <150KB gz (if web app); size-limit passes
-- [ ] Security: no secrets committed; follows CSP; CodeQL clean
-- [ ] Privacy: no PII added; telemetry is opt-in only
-- [ ] Labels added (gate:*, module:*, persona:*, priority:*)
+Please delete options that are not relevant.
 
-Notes
-- Anything reviewers should focus on?
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
+
+## Checklist
+
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published in downstream modules
+
+## Further Comments
+
+If this is a relatively large or complex change, kick off the discussion by explaining why you chose the solution you did and what alternatives you considered, etc...

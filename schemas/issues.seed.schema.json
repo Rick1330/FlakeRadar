@@ -8,16 +8,12 @@
     "epics": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/epic"
-      }
+      "items": { "$ref": "#/$defs/epic" }
     },
     "stories": {
       "type": "array",
       "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/story"
-      }
+      "items": { "$ref": "#/$defs/story" }
     }
   },
   "$defs": {
@@ -30,16 +26,25 @@
       "items": { "type": "string", "minLength": 1 }
     },
     "project": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "owner": { "type": "string", "minLength": 1 },
-        "number": { "type": "integer", "minimum": 1 },
-        "title": { "type": "string", "minLength": 1 }
-      },
-      "anyOf": [
-        { "required": ["owner", "number"] },
-        { "required": ["owner", "title"] }
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["owner", "number"],
+          "properties": {
+            "owner": { "type": "string", "minLength": 1 },
+            "number": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["owner", "title"],
+          "properties": {
+            "owner": { "type": "string", "minLength": 1 },
+            "title": { "type": "string", "minLength": 1 }
+          }
+        }
       ]
     },
     "epic": {

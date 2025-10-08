@@ -1,78 +1,66 @@
 name: Story
-description: User story with testable acceptance criteria. Map to a WU and gate.
-title: "STORY: <short name>"
-labels: []
+about: A specific work item that belongs to an epic
+title: 'story: '
+labels: ['story']
 body:
-  - type: dropdown
-    id: persona
+  - type: input
+    id: story-id
     attributes:
-      label: Persona
-      options:
-        - dev
-        - qa
-        - sre
-        - em
+      label: Story ID
+      description: The unique identifier for this story (e.g., ST-001)
+      placeholder: ST-001
     validations:
       required: true
-  - type: dropdown
-    id: gate
+  - type: input
+    id: epic-id
     attributes:
-      label: Gate
-      options:
-        - A
-        - B
-        - C
-        - D
+      label: Epic ID
+      description: The ID of the epic this story belongs to
+      placeholder: EP-001
     validations:
       required: true
-  - type: dropdown
-    id: module
+  - type: textarea
+    id: description
     attributes:
-      label: Module
-      options:
-        - ingest
-        - scoring
-        - ui
-        - bot
-        - docs
+      label: Description
+      description: A clear and concise description of what this story is about
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What must be true for this story to be considered complete?
     validations:
       required: true
   - type: input
     id: wu
     attributes:
-      label: Work Unit (WU-ID)
-      placeholder: e.g., WU-203
-  - type: textarea
-    id: story
+      label: Work Unit
+      description: The WU this story belongs to (if any)
+      placeholder: WU-001
+  - type: input
+    id: milestone
     attributes:
-      label: Story
-      description: As a <persona>, I want to <do X>, so that <benefit>.
-      placeholder: As a QA, I want flaky tests auto-commented on my PR, so I can act before merge.
-    validations:
-      required: true
-  - type: textarea
-    id: ac
+      label: Milestone
+      description: Associated milestone (if any)
+      placeholder: Gate A
+  - type: input
+    id: project
     attributes:
-      label: Acceptance Criteria
-      description: Bullet list of testable AC. Include budgets if relevant.
-      placeholder: |
-        - Given a PR with commit SHA X and a flaky test F≥60, the bot posts/updates a single comment.
-        - Label 'flaky-tests' is applied only if candidates exist.
-        - Comment update is idempotent and rate limited (≤10 writes/min/repo).
-    validations:
-      required: true
+      label: Project
+      description: Associated project board (if any)
+      placeholder: FlakeRadar Roadmap
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: List any dependencies on other stories or tasks
   - type: checkboxes
-    id: dod
+    id: terms
     attributes:
-      label: Definition of Done
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](../../CODE_OF_CONDUCT.md)
       options:
-        - label: Tests updated/added
-        - label: Docs updated (README/ADR)
-        - label: Budgets enforced (a11y/perf/security/privacy)
-        - label: Labels applied (gate:*, module:*, persona:*, priority:*)
-        - label: WU completed (commit + Build Log + Session State)
-  - type: textarea
-    id: notes
-    attributes:
-      label: Notes / Links
-      placeholder: Links to designs, PRs, ADRs, or related issues.
+        - label: I agree to follow this project's Code of Conduct
+          required: true

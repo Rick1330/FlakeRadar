@@ -117,7 +117,6 @@ get_project_number() {
     echo "$PROJECT_NUMBER"
     return
   fi
-  # Find by title
   retry 5 gh project list --owner "$PROJECT_OWNER" --format json --jq ".[] | select(.title==\"$PROJECT_TITLE\") | .number"
 }
 
@@ -139,6 +138,7 @@ add_to_project() {
 map_init() { [[ -f "$MAP" ]] || echo "{}" > "$MAP"; }
 map_set() {
   local id="$1" repo="$2" number="$3"
+  local tmp
   tmp="$(mktemp)"
   jq ". + {\"$id\": {\"repo\": \"$repo\", \"number\": $number}}" "$MAP" > "$tmp" && mv "$tmp" "$MAP"
 }
@@ -147,9 +147,7 @@ map_get_number() { jq -r ".\"$1\".number // empty" "$MAP"; }
 
 find_issue_by_seed_id() {
   local repo="$1" id="$2"
-  gh issue list -R "$repo" --state all \
-    --search "in:body \"seed-id: $id\"" \
-    --json number --jq '.[0].number' 2>/dev/null
+  gh issue list -R "$repo" --state all --search "in:body \"seed-id: $id\"" --json number --jq '.[0].number' 2>/dev/null
 }
 
 issue_url() { echo "https://github.com/$1/issues/$2"; }
@@ -183,7 +181,6 @@ set_milestone() {
 # -------------- Close missing --------------
 close_missing() {
   local -r all_ids_present="$1"
-  # Iterate mapping keys and close those not in $all_ids_present
   local keys; keys=$(jq -r 'keys[]' "$MAP")
   for k in $keys; do
     if ! grep -qx "$k" <<< "$all_ids_present"; then
@@ -273,20 +270,16 @@ main() {
 
   # Build list of target repos to pre-ensure labels
   local repos=()
-  # Epics
   while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.epics[].repo // $R' "$SEED")
-  # Stories
   while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.stories[].repo // $R' "$SEED")
-  # Unique
   mapfile -t repos < <(printf "%s\n" "${repos[@]}" | sort -u)
   for r in "${repos[@]}"; do ensure_labels "$r"; done
 
-  # Ensure default milestones in each repo
   for r in "${repos[@]}"; do
     for m in "Gate A" "Gate B" "Gate C" "Gate D"; do ensure_milestone "$r" "$m"; done
   done
 
-  # Create epics first
+  # Epics
   while IFS= read -r e; do
     local id title labels body repo milestone assignees adrLinks_csv
     id=$(jq -r '.id' <<<"$e")
@@ -325,12 +318,11 @@ main() {
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
 
-    # Add to project (optional)
     local url; url=$(issue_url "$repo" "$number")
     add_to_project "$url"
   done < <(jq -c '.epics[]' "$SEED")
 
-  # Stories next
+  # Stories
   while IFS= read -r s; do
     local id epicId title labels wu repo ac_lines milestone assignees adrLinks_csv dod_lines
     id=$(jq -r '.id' <<<"$s")
@@ -346,11 +338,9 @@ main() {
 
     [[ -z "$milestone" ]] && milestone="$(auto_milestone_from_labels "$labels")"
 
-    # Compose AC markdown bullets
     ac_lines=""
     while IFS= read -r a; do ac_lines+="- $a"$'\n'; done < <(jq -r '.acceptanceCriteria[]' <<<"$s")
 
-    # Parent epic URL
     local epic_repo epic_number epic_url
     epic_repo=$(map_get_repo "$epicId")
     epic_number=$(map_get_number "$epicId")
@@ -367,13 +357,11 @@ main() {
       if (( DRY_RUN == 1 )); then
         summary+="- [STORY] $id → create in $repo: \"$title\"\n"
       else
-        # Attempt create in target repo
         if number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq '.number'); then
           sleep_throttle
           summary+="- [STORY] $id → created #$number in $repo: \"$title\"\n"
         else
           if (( TRANSFER_FALLBACK == 1 )); then
-            # Create in default repo and mark needs-transfer
             number=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion" --json number --jq '.number')
             sleep_throttle
             summary+="- [STORY] $id → created in $REPO_DEFAULT (fallback), needs transfer to $repo\n"
@@ -399,20 +387,25 @@ main() {
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
 
-    # Add to project
     local url; url=$(issue_url "$repo" "$number")
     add_to_project "$url"
   done < <(jq -c '.stories[]' "$SEED")
 
-  # Close missing if requested
   if (( CLOSE_MISSING == 1 )); then
     close_missing "$ids_present"
   fi
 
-  # Summaries
   echo -e "Seed Summary:\n$summary"
-  echo -e "summary<<EOF\n$summary\nEOF" >> "$GITHUB_OUTPUT"
-  echo -e "### Issue Seed Summary\n\n$summary" >> "$GITHUB_STEP_SUMMARY"
+  {
+    echo "summary<<EOF"
+    echo -e "$summary"
+    echo "EOF"
+  } >> "$GITHUB_OUTPUT"
+  {
+    echo "### Issue Seed Summary"
+    echo
+    echo -e "$summary"
+  } >> "$GITHUB_STEP_SUMMARY"
 }
 
 main "$@"
