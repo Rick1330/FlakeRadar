@@ -34,10 +34,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Install ajv-cli
-        run: npm i -g ajv-cli
+      - name: Install ajv-cli and ajv-formats
+        run: npm i -g ajv-cli ajv-formats
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 -c ajv-formats
       - name: Dry-run seeding (no writes)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -65,10 +65,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Install ajv-cli
-        run: npm i -g ajv-cli
+      - name: Install ajv-cli and ajv-formats
+        run: npm i -g ajv-cli ajv-formats
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true -c ajv-formats
       - name: Apply seeding (create/update/close)
         env:
           CLOSE_MISSING: "1"
