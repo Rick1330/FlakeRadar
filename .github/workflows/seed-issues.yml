@@ -74,9 +74,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with: { persist-credentials: false }
+        # note: no persist-credentials: false (we want the default credentials)
       - uses: actions/setup-node@v4
-        with: { node-version: "20" }
+        with:
+          node-version: "20"
       - name: Install ajv-cli
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
@@ -85,20 +86,18 @@ jobs:
         run: gh --version
       - name: Apply seeding (create/update/close)
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}    # used by gh for issue ops
           CLOSE_MISSING: "1"
           SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
       - name: Commit updated issues/map.json (if changed)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "flakeradar-bot"
           git config user.email "actions@users.noreply.github.com"
           if [[ -n "$(git status --porcelain issues/map.json)" ]]; then
             git add issues/map.json
             git commit -m "ci(seed): update issues map [skip ci]"
-            git push "https://${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+            git push origin HEAD:main
           else
             echo "No map changes to commit."
           fi
