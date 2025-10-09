@@ -51,7 +51,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           num=${{ github.event.pull_request.number }}
-          gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
+          body=$(cat "$GITHUB_STEP_SUMMARY")
+          if [ -z "$body" ]; then
+            body="Issue seeding workflow completed. Check the workflow logs for details."
+          fi
+          gh pr comment "$num" --body "$body"
 
   apply-on-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
