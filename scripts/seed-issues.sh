@@ -111,29 +111,29 @@ auto_milestone_from_labels() {
   esac
 }
 
-# -------------- Projects v2 --------------
-get_project_number() {
-  if [[ -n "${PROJECT_NUMBER:-}" ]]; then
-    echo "$PROJECT_NUMBER"
-    return
-  fi
-  # Find by title
-  retry 5 gh project list --owner "$PROJECT_OWNER" --format json --jq ".[] | select(.title==\"$PROJECT_TITLE\") | .number"
-}
+# -------------- Projects v2 (DISABLED IN SANDBOX) --------------
+# get_project_number() {
+#   if [[ -n "${PROJECT_NUMBER:-}" ]]; then
+#     echo "$PROJECT_NUMBER"
+#     return
+#   fi
+#   # Find by title
+#   retry 5 gh project list --owner "$PROJECT_OWNER" --format json --jq ".[] | select(.title==\"$PROJECT_TITLE\") | .number"
+# }
 
-add_to_project() {
-  local url="$1"
-  local owner="${2:-$PROJECT_OWNER}"
-  local number
-  number=$(get_project_number)
-  [[ -z "$number" ]] && { echo "WARN: Project '$PROJECT_TITLE' not found under $PROJECT_OWNER"; return 0; }
-  if (( DRY_RUN == 1 )); then
-    echo "PLAN: add $url to project $owner#$number"
-  else
-    retry 5 gh project item-add --owner "$owner" --number "$number" --url "$url" >/dev/null
-    sleep_throttle
-  fi
-}
+# add_to_project() {
+#   local url="$1"
+#   local owner="${2:-$PROJECT_OWNER}"
+#   local number
+#   number=$(get_project_number)
+#   [[ -z "$number" ]] && { echo "WARN: Project \'$PROJECT_TITLE\' not found under $PROJECT_OWNER"; return 0; }
+#   if (( DRY_RUN == 1 )); then
+#     echo "PLAN: add $url to project $owner#$number"
+#   else
+#     retry 5 gh project item-add --owner "$owner" --number "$number" --url "$url" >/dev/null
+#     sleep_throttle
+#   fi
+# }
 
 # -------------- Issues search & mapping --------------
 map_init() { [[ -f "$MAP" ]] || echo "{}" > "$MAP"; }
@@ -305,8 +305,9 @@ main() {
     if [[ -z "${number:-}" ]]; then
       if (( DRY_RUN == 1 )); then
         summary+="- [EPIC] $id → create in $repo: \"$title\"\n"
+        number="1" # Assign a dummy number for DRY_RUN
       else
-        number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq '.number')
+        number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq ".number")
         sleep_throttle
         summary+="- [EPIC] $id → created #$number in $repo: \"$title\"\n"
       fi
@@ -325,9 +326,9 @@ main() {
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
 
-    # Add to project (optional)
-    local url; url=$(issue_url "$repo" "$number")
-    add_to_project "$url"
+    # Add to project (optional) - DISABLED IN SANDBOX
+    # local url; url=$(issue_url "$repo" "$number")
+    # add_to_project "$url"
   done < <(jq -c '.epics[]' "$SEED")
 
   # Stories next
@@ -399,9 +400,9 @@ main() {
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
 
-    # Add to project
-    local url; url=$(issue_url "$repo" "$number")
-    add_to_project "$url"
+    # Add to project - DISABLED IN SANDBOX
+    # local url; url=$(issue_url "$repo" "$number")
+    # add_to_project "$url"
   done < <(jq -c '.stories[]' "$SEED")
 
   # Close missing if requested
