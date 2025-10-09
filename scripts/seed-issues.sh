@@ -350,12 +350,21 @@ main() {
 
   if (( CLOSE_MISSING == 1 )); then close_missing "$ids_present"; fi
 
+  # If no actions were planned, make the summary explicit
+  if [[ -z "${summary//[[:space:]]/}" ]]; then
+    summary="No planned actions (seed is up-to-date or DRY_RUN produced no diff)."
+  fi
+
   echo -e "Seed Summary:\n$summary"
   {
-    echo "summary<<EOF"; echo -e "$summary"; echo "EOF";
+    echo "summary<<EOF"
+    echo -e "$summary"
+    echo "EOF"
   } >> "$GITHUB_OUTPUT"
   {
-    echo "### Issue Seed Summary"; echo; echo -e "$summary";
+    echo "### Issue Seed Summary"
+    echo
+    echo -e "$summary"
   } >> "$GITHUB_STEP_SUMMARY"
 }
 

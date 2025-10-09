@@ -23,7 +23,6 @@ permissions:
   pull-requests: write
 
 env:
-  # IMPORTANT: default to the repo where the workflow runs
   REPO_DEFAULT: ${{ github.repository }}
   PROJECT_OWNER: ${{ github.repository_owner }}
   PROJECT_TITLE: FlakeRadar Roadmap
@@ -42,17 +41,33 @@ jobs:
       - name: Validate seed.json against schema
         run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
       - name: Dry-run seeding (no writes)
+        id: dryrun
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: "1"
           SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
-      - name: Comment summary on PR
+      - name: Ensure summary not empty
+        run: |
+          if ! [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            {
+              echo "### Issue Seed PR Check"
+              echo
+              echo "No planned changes or dry-run produced no diff."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Comment summary on PR (safe)
+        if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           num=${{ github.event.pull_request.number }}
-          gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
+          if [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
+          else
+            gh pr comment "$num" --body "Seed workflow ran. No summary generated (likely a no-op)."
+          fi
 
   apply-on-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -66,11 +81,10 @@ jobs:
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
         run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
-      - name: Show gh version (debug)
+      - name: gh version (debug)
         run: gh --version
       - name: Apply seeding (create/update/close)
         env:
-          # If you later target other repos, add GH_TOKEN_SEED with repo scope covering them
           GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
           CLOSE_MISSING: "1"
           SKIP_LOCAL_VALIDATION: "1"
