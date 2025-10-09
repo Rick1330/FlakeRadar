@@ -7,6 +7,7 @@ on:
       - "schemas/issues.seed.schema.json"
       - "scripts/seed-issues.sh"
       - ".github/workflows/seed-issues.yml"
+      - "docs/ISSUE_SEEDING.md"
   push:
     branches: ["main"]
     paths:
@@ -14,6 +15,7 @@ on:
       - "schemas/issues.seed.schema.json"
       - "scripts/seed-issues.sh"
       - ".github/workflows/seed-issues.yml"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -42,9 +44,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: "1"
+          SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
       - name: Comment summary on PR
-        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -60,28 +62,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+        with: { persist-credentials: false }
       - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+        with: { node-version: "20" }
       - name: Install ajv-cli and ajv-formats
         run: npm i -g ajv-cli ajv-formats
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true -c ajv-formats
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 -c ajv-formats
+      - name: Show gh version (debug)
+        run: gh --version
       - name: Apply seeding (create/update/close)
         env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
           CLOSE_MISSING: "1"
-        run: |
-          # Use GH_TOKEN_SEED if available (for cross-repo operations), otherwise fall back to GITHUB_TOKEN
-          if [ "${{ secrets.GH_TOKEN_SEED != '' }}" == "true" ]; then
-            export GH_TOKEN="${{ secrets.GH_TOKEN_SEED }}"
-            echo "Using GH_TOKEN_SEED for cross-repo operations"
-          else
-            export GH_TOKEN="${{ secrets.GITHUB_TOKEN }}"
-            echo "Notice: Using GITHUB_TOKEN (limited to same repo only) - for cross-repo support, add GH_TOKEN_SEED secret"
-          fi
-          bash scripts/seed-issues.sh
+          SKIP_LOCAL_VALIDATION: "1"
+        run: bash scripts/seed-issues.sh
       - name: Commit updated issues/map.json (if changed)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

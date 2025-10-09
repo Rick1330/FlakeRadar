@@ -4,7 +4,7 @@
 # - Multi-repo targeting via "repo" per item; fallback transfer option
 # - DRY_RUN=1 prints plan only
 # - CLOSE_MISSING=1 auto-closes issues removed from seed.json (comment + label "obsolete-by-seed")
-# - Creates standardized labels (with colors), milestones (Gate A-D, Sprint-xx), and adds issues to Projects v2
+# - Creates standardized labels (with colors), milestones (Gate A-D, Sprint-xx)
 # - Rate-limited with retries
 # - Uses GH_TOKEN (repo/project scopes) — principle of least privilege
 
@@ -19,9 +19,10 @@ REPO_DEFAULT="${REPO_DEFAULT:-rick1330/flakeradar-program}"
 TRANSFER_FALLBACK="${TRANSFER_FALLBACK:-0}"
 DRY_RUN="${DRY_RUN:-0}"
 CLOSE_MISSING="${CLOSE_MISSING:-0}"
+SKIP_LOCAL_VALIDATION="${SKIP_LOCAL_VALIDATION:-1}"  # CI already validates; default to skip here
 
 PROJECT_OWNER="${PROJECT_OWNER:-rick1330}"
-PROJECT_TITLE="${PROJECT_TITLE:-FlakeRadar Roadmap}"  # or set PROJECT_NUMBER
+PROJECT_TITLE="${PROJECT_TITLE:-FlakeRadar Roadmap}"  # project steps disabled below
 
 GITHUB_OUTPUT="${GITHUB_OUTPUT:-/dev/null}"
 GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
@@ -30,14 +31,18 @@ GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
 jq_bin() { command -v jq >/dev/null || { echo "jq is required" >&2; exit 1; }; }
 gh_bin() { command -v gh >/dev/null || { echo "gh CLI is required" >&2; exit 1; }; }
 ajv_validate() {
+  if (( SKIP_LOCAL_VALIDATION == 1 )); then
+    echo "Skipping local schema validation (CI step enforces it)..."
+    return 0
+  fi
   if command -v ajv >/dev/null; then
-    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020 -c ajv-formats
+    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020 -c ajv-formats || return 1
   else
     echo "ajv not found; skipping local schema validation (CI will check)"
   fi
 }
 
-sleep_throttle() { sleep 0.3; } # gentle throttle
+sleep_throttle() { sleep 0.3; }
 retry() {
   local max=${1:-5}; shift
   local n=1
@@ -48,27 +53,13 @@ retry() {
   done
 }
 
-# -------------- Labels (standardized colors) --------------
+# -------------- Labels (standard colors) --------------
 declare -A LABELS_COLORS=(
-  ["good first issue"]="7057ff"
-  ["help wanted"]="008672"
-  ["discussion"]="bfd4f2"
-  ["gate:A"]="0e8a16"
-  ["gate:B"]="5319e7"
-  ["gate:C"]="fbca04"
-  ["gate:D"]="d93f0b"
-  ["persona:dev"]="1d76db"
-  ["persona:qa"]="0e8a16"
-  ["persona:sre"]="5319e7"
-  ["persona:em"]="cfd3d7"
-  ["module:ingest"]="0e8a16"
-  ["module:scoring"]="fbca04"
-  ["module:ui"]="1d76db"
-  ["module:bot"]="d4c5f9"
-  ["module:docs"]="bfdadc"
-  ["priority:p1"]="e11d48"
-  ["priority:p2"]="fb7185"
-  ["priority:p3"]="fdba74"
+  ["good first issue"]="7057ff" ["help wanted"]="008672" ["discussion"]="bfd4f2"
+  ["gate:A"]="0e8a16" ["gate:B"]="5319e7" ["gate:C"]="fbca04" ["gate:D"]="d93f0b"
+  ["persona:dev"]="1d76db" ["persona:qa"]="0e8a16" ["persona:sre"]="5319e7" ["persona:em"]="cfd3d7"
+  ["module:ingest"]="0e8a16" ["module:scoring"]="fbca04" ["module:ui"]="1d76db" ["module:bot"]="d4c5f9" ["module:docs"]="bfdadc"
+  ["priority:p1"]="e11d48" ["priority:p2"]="fb7185" ["priority:p3"]="fdba74"
   ["obsolete-by-seed"]="ededed"
 )
 
@@ -101,55 +92,24 @@ ensure_milestone() {
 }
 
 auto_milestone_from_labels() {
-  local labels_csv="$1"
-  case "$labels_csv" in
-    *"gate:A"*) echo "Gate A" ;;
-    *"gate:B"*) echo "Gate B" ;;
-    *"gate:C"*) echo "Gate C" ;;
-    *"gate:D"*) echo "Gate D" ;;
-    *) echo "" ;;
+  case "$1" in
+    *"gate:A"*) echo "Gate A" ;; *"gate:B"*) echo "Gate B" ;;
+    *"gate:C"*) echo "Gate C" ;; *"gate:D"*) echo "Gate D" ;; *) echo "" ;;
   esac
 }
 
-# -------------- Projects v2 (DISABLED IN SANDBOX) --------------
-# get_project_number() {
-#   if [[ -n "${PROJECT_NUMBER:-}" ]]; then
-#     echo "$PROJECT_NUMBER"
-#     return
-#   fi
-#   # Find by title
-#   retry 5 gh project list --owner "$PROJECT_OWNER" --format json --jq ".[] | select(.title==\"$PROJECT_TITLE\") | .number"
-# }
+# -------------- Projects v2 (disabled here to simplify permissions) --------------
+# add_to_project() { :; }
 
-# add_to_project() {
-#   local url="$1"
-#   local owner="${2:-$PROJECT_OWNER}"
-#   local number
-#   number=$(get_project_number)
-#   [[ -z "$number" ]] && { echo "WARN: Project \'$PROJECT_TITLE\' not found under $PROJECT_OWNER"; return 0; }
-#   if (( DRY_RUN == 1 )); then
-#     echo "PLAN: add $url to project $owner#$number"
-#   else
-#     retry 5 gh project item-add --owner "$owner" --number "$number" --url "$url" >/dev/null
-#     sleep_throttle
-#   fi
-# }
-
-# -------------- Issues search & mapping --------------
+# -------------- Mapping helpers --------------
 map_init() { [[ -f "$MAP" ]] || echo "{}" > "$MAP"; }
-map_set() {
-  local id="$1" repo="$2" number="$3"
-  tmp="$(mktemp)"
-  jq ". + {\"$id\": {\"repo\": \"$repo\", \"number\": $number}}" "$MAP" > "$tmp" && mv "$tmp" "$MAP"
-}
+map_set() { local id="$1" repo="$2" number="$3"; local tmp; tmp="$(mktemp)"; jq ". + {\"$id\": {\"repo\": \"$repo\", \"number\": $number}}" "$MAP" > "$tmp" && mv "$tmp" "$MAP"; }
 map_get_repo() { jq -r ".\"$1\".repo // empty" "$MAP"; }
 map_get_number() { jq -r ".\"$1\".number // empty" "$MAP"; }
 
 find_issue_by_seed_id() {
   local repo="$1" id="$2"
-  gh issue list -R "$repo" --state all \
-    --search "in:body \"seed-id: $id\"" \
-    --json number --jq '.[0].number' 2>/dev/null
+  gh issue list -R "$repo" --state all --search "in:body \"seed-id: $id\"" --json number --jq '.[0].number' 2>/dev/null
 }
 
 issue_url() { echo "https://github.com/$1/issues/$2"; }
@@ -180,19 +140,16 @@ set_milestone() {
   fi
 }
 
-# -------------- Close missing --------------
 close_missing() {
   local -r all_ids_present="$1"
-  # Iterate mapping keys and close those not in $all_ids_present
-  local keys; keys=$(jq -r 'keys[]' "$MAP")
+  local keys; keys=$(jq -r 'keys[]' "$MAP" 2>/dev/null || true)
   for k in $keys; do
     if ! grep -qx "$k" <<< "$all_ids_present"; then
       local repo number
       repo=$(map_get_repo "$k"); number=$(map_get_number "$k")
       [[ -z "$repo" || -z "$number" ]] && continue
-      local url; url=$(issue_url "$repo" "$number")
       if (( DRY_RUN == 1 )); then
-        echo "PLAN: close $url as obsolete-by-seed"
+        echo "PLAN: close $(issue_url "$repo" "$number") as obsolete-by-seed"
       else
         retry 3 gh issue comment "$number" -R "$repo" -b "Closing as obsolete per seed sync. This item ($k) was removed from issues/seed.json." >/dev/null || true
         retry 3 gh issue edit "$number" -R "$repo" --add-label "obsolete-by-seed" >/dev/null || true
@@ -203,7 +160,7 @@ close_missing() {
   done
 }
 
-# -------------- Compose bodies --------------
+# -------------- Body composers --------------
 epic_body() {
   local id="$1" body="$2" adr_links_csv="$3"
   local adr_md=""
@@ -226,7 +183,7 @@ EOF
 }
 
 story_body() {
-  local id="$1" epic_url="$2" wu="$3" ac_lines="$4" adr_links_csv="$5" dod_lines="$6"
+  local id="$1" epic_url="$2" wu="$3" ac_lines="$4" adr_links_csv="$5" dod_raw="$6"
   local adr_md=""
   if [[ -n "$adr_links_csv" ]]; then
     IFS=',' read -ra links <<< "$adr_links_csv"
@@ -235,11 +192,11 @@ story_body() {
   fi
 
   local dod_md=""
-  if [[ -n "$dod_lines" ]]; then
+  if [[ -n "$dod_raw" ]]; then
     while IFS= read -r line; do
       [[ -z "$line" ]] && continue
       dod_md+="- [ ] $line"$'\n'
-    done <<< "$dod_lines"
+    done <<< "$dod_raw"
   else
     dod_md="- [ ] Tests updated/added"$'\n'
     dod_md+="- [ ] Docs updated (README/ADR)"$'\n'
@@ -262,6 +219,15 @@ $adr_md
 EOF
 }
 
+# -------------- Create/update helpers (no --json flags) --------------
+create_issue_and_get_number() {
+  local repo="$1" title="$2" body="$3" labels_csv="$4"
+  # gh issue create prints the issue URL; parse number
+  local url
+  url=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body" -l "$labels_csv")
+  sed -E 's#.*/issues/([0-9]+).*#\1#' <<< "$url" | tr -d '\r\n'
+}
+
 # -------------- Main --------------
 main() {
   jq_bin; gh_bin
@@ -271,22 +237,15 @@ main() {
   local summary=""
   local ids_present=""
 
-  # Build list of target repos to pre-ensure labels
+  # Target repos (unique)
   local repos=()
-  # Epics
   while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.epics[].repo // $R' "$SEED")
-  # Stories
   while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.stories[].repo // $R' "$SEED")
-  # Unique
   mapfile -t repos < <(printf "%s\n" "${repos[@]}" | sort -u)
   for r in "${repos[@]}"; do ensure_labels "$r"; done
+  for r in "${repos[@]}"; do for m in "Gate A" "Gate B" "Gate C" "Gate D"; do ensure_milestone "$r" "$m"; done; done
 
-  # Ensure default milestones in each repo
-  for r in "${repos[@]}"; do
-    for m in "Gate A" "Gate B" "Gate C" "Gate D"; do ensure_milestone "$r" "$m"; done
-  done
-
-  # Create epics first
+  # Epics first
   while IFS= read -r e; do
     local id title labels body repo milestone assignees adrLinks_csv
     id=$(jq -r '.id' <<<"$e")
@@ -305,10 +264,9 @@ main() {
     if [[ -z "${number:-}" ]]; then
       if (( DRY_RUN == 1 )); then
         summary+="- [EPIC] $id → create in $repo: \"$title\"\n"
-        number="1" # Assign a dummy number for DRY_RUN
+        number="0"
       else
-        number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq ".number")
-        sleep_throttle
+        number="$(create_issue_and_get_number "$repo" "$title" "$body_md" "$labels")"
         summary+="- [EPIC] $id → created #$number in $repo: \"$title\"\n"
       fi
     else
@@ -316,7 +274,6 @@ main() {
         summary+="- [EPIC] $id → update #$number in $repo\n"
       else
         retry 5 gh issue edit "$number" -R "$repo" -t "$title" --body "$body_md" >/dev/null
-        sleep_throttle
         summary+="- [EPIC] $id → updated #$number in $repo\n"
       fi
     fi
@@ -325,15 +282,11 @@ main() {
     [[ -n "$assignees" ]] && assign_users "$repo" "$number" "$assignees"
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
-
-    # Add to project (optional) - DISABLED IN SANDBOX
-    # local url; url=$(issue_url "$repo" "$number")
-    # add_to_project "$url"
   done < <(jq -c '.epics[]' "$SEED")
 
   # Stories next
   while IFS= read -r s; do
-    local id epicId title labels wu repo ac_lines milestone assignees adrLinks_csv dod_lines
+    local id epicId title labels wu repo ac_lines milestone assignees adrLinks_csv dod_raw
     id=$(jq -r '.id' <<<"$s")
     epicId=$(jq -r '.epicId' <<<"$s")
     title=$(jq -r '.title' <<<"$s")
@@ -343,15 +296,13 @@ main() {
     milestone=$(jq -r '.milestone // empty' <<<"$s")
     assignees=$(jq -r '.assignees // [] | join(",")' <<<"$s")
     adrLinks_csv=$(jq -r '.adrLinks // [] | join(",")' <<<"$s")
-    dod_lines=$(jq -r '.dod // [] | .[]' <<<"$s" | sed 's/^/- /')
+    dod_raw=$(jq -r '.dod // [] | .[]' <<<"$s")
 
     [[ -z "$milestone" ]] && milestone="$(auto_milestone_from_labels "$labels")"
 
-    # Compose AC markdown bullets
     ac_lines=""
     while IFS= read -r a; do ac_lines+="- $a"$'\n'; done < <(jq -r '.acceptanceCriteria[]' <<<"$s")
 
-    # Parent epic URL
     local epic_repo epic_number epic_url
     epic_repo=$(map_get_repo "$epicId")
     epic_number=$(map_get_number "$epicId")
@@ -361,22 +312,20 @@ main() {
     fi
     epic_url=$(issue_url "$epic_repo" "$epic_number")
 
-    local body_md; body_md="$(story_body "$id" "$epic_url" "$wu" "$ac_lines" "$adrLinks_csv" "$dod_lines")"
+    local body_md; body_md="$(story_body "$id" "$epic_url" "$wu" "$ac_lines" "$adrLinks_csv" "$dod_raw")"
 
     local number; number="$(find_issue_by_seed_id "$repo" "$id" || true)"
     if [[ -z "${number:-}" ]]; then
       if (( DRY_RUN == 1 )); then
         summary+="- [STORY] $id → create in $repo: \"$title\"\n"
       else
-        # Attempt create in target repo
-        if number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq '.number'); then
-          sleep_throttle
+        if number="$(create_issue_and_get_number "$repo" "$title" "$body_md" "$labels")"; then
           summary+="- [STORY] $id → created #$number in $repo: \"$title\"\n"
         else
           if (( TRANSFER_FALLBACK == 1 )); then
-            # Create in default repo and mark needs-transfer
-            number=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion" --json number --jq '.number')
-            sleep_throttle
+            local fb_url
+            fb_url=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion")
+            number="$(sed -E 's#.*/issues/([0-9]+).*#\1#' <<< "$fb_url" | tr -d '\r\n')"
             summary+="- [STORY] $id → created in $REPO_DEFAULT (fallback), needs transfer to $repo\n"
             repo="$REPO_DEFAULT"
           else
@@ -390,7 +339,6 @@ main() {
         summary+="- [STORY] $id → update #$number in $repo\n"
       else
         retry 5 gh issue edit "$number" -R "$repo" -t "$title" --body "$body_md" >/dev/null
-        sleep_throttle
         summary+="- [STORY] $id → updated #$number in $repo\n"
       fi
     fi
@@ -399,21 +347,21 @@ main() {
     [[ -n "$assignees" ]] && assign_users "$repo" "$number" "$assignees"
     set_milestone "$repo" "$number" "$milestone"
     ids_present+="$id"$'\n'
-
-    # Add to project - DISABLED IN SANDBOX
-    # local url; url=$(issue_url "$repo" "$number")
-    # add_to_project "$url"
   done < <(jq -c '.stories[]' "$SEED")
 
-  # Close missing if requested
-  if (( CLOSE_MISSING == 1 )); then
-    close_missing "$ids_present"
-  fi
+  if (( CLOSE_MISSING == 1 )); then close_missing "$ids_present"; fi
 
-  # Summaries
   echo -e "Seed Summary:\n$summary"
-  echo -e "summary<<EOF\n$summary\nEOF" >> "$GITHUB_OUTPUT"
-  echo -e "### Issue Seed Summary\n\n$summary" >> "$GITHUB_STEP_SUMMARY"
+  {
+    echo "summary<<EOF"
+    echo -e "$summary"
+    echo "EOF"
+  } >> "$GITHUB_OUTPUT"
+  {
+    echo "### Issue Seed Summary"
+    echo
+    echo -e "$summary"
+  } >> "$GITHUB_STEP_SUMMARY"
 }
 
 main "$@"
