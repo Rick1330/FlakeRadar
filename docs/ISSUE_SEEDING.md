@@ -6,7 +6,7 @@ Overview
 - Automation: scripts/seed-issues.sh + .github/workflows/seed-issues.yml
 - Multi‑repo: set "repo" per item or default to REPO_DEFAULT
 - Safety: DRY_RUN on PRs; apply on main only; rate‑limited; retries
-- Governance: standardized label taxonomy + colors; milestones (Gate A–D, Sprint‑xx); Projects v2 Roadmap
+- Governance: standardized label taxonomy + colors; milestones (Gate A–D, Sprint‑xx)
 
 Usage (local)
 - Prereqs: gh (CLI), jq, Node 20+, ajv-cli (optional local)
@@ -16,10 +16,11 @@ Usage (local)
   GH_TOKEN=<repo-scoped token> CLOSE_MISSING=1 bash scripts/seed-issues.sh
 
 Key env vars
-- REPO_DEFAULT (default rick1330/flakeradar-program)
+- REPO_DEFAULT (defaults to current repository where workflow runs)
 - DRY_RUN=1 (no writes; prints plan)
 - CLOSE_MISSING=1 (closes issues no longer present; adds label "obsolete-by-seed")
-- PROJECT_OWNER=rick1330, PROJECT_TITLE="FlakeRadar Roadmap" (or set PROJECT_NUMBER)
+- PROJECT_OWNER (defaults to repository owner)
+- PROJECT_TITLE="FlakeRadar Roadmap" (or set PROJECT_NUMBER)
 - TRANSFER_FALLBACK=1 (if creation in target repo fails, create in REPO_DEFAULT with a note)
 
 Schema highlights (schemas/issues.seed.schema.json)
@@ -67,3 +68,9 @@ Milestones & Projects
 Cross‑repo consistency
 - Keep seed‑id markers on issue body; transfers preserve them.
 - issues/map.json tracks id → { repo, number } and is updated on every apply.
+
+Recent Improvements
+- Automatic repository targeting: The workflow now automatically targets the current repository where it runs
+- Enhanced error handling: Repository access is validated before operations to prevent "repo not found" errors
+- Robust URL parsing: Improved parsing of GitHub issue URLs to reliably extract issue numbers
+- Better error messages: Clear, actionable error messages help diagnose issues quickly

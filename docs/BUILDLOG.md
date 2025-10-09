@@ -102,3 +102,13 @@ Format
 - Follow-ups
   - Re-enable Projects v2 integration when proper access tokens are configured
   - Continue testing issue seeding workflow in different environments
+
+2025-10-09 • WU‑010 • Rick1330/FlakeRadar • Fix GitHub CLI compatibility issues in issue seeding workflow
+- What/Why
+  - Resolved "repo not found" errors by updating the seeding workflow to target the current repository automatically. Fixed GitHub CLI compatibility issues with the `gh issue create` command by removing unsupported `--json` flags and implementing proper URL parsing. Added repository validation and improved error handling.
+- Artifacts/Links
+  - Modified: .github/workflows/seed-issues.yml (updated REPO_DEFAULT to use github.repository, improved error handling)
+  - Modified: scripts/seed-issues.sh (added repository validation, fixed issue number extraction, improved error messages)
+- Follow-ups
+  - Test issue seeding workflow with different repository targets
+  - Monitor for any remaining edge cases in URL parsing
