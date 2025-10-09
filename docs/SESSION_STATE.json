@@ -1,5 +1,5 @@
 {
-  "lastWU": 1,
-  "openPRs": [],
-  "nextWUs": ["WU-002 Charter", "WU-003 Governance"]
+  "lastWU": 10,
+  "openPRs": ["fix-gh-issue-create-conflict"],
+  "nextWUs": ["WU-011 Test issue seeding workflow", "WU-012 Monitor workflow execution"]
 }

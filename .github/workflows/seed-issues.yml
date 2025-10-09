@@ -23,8 +23,8 @@ permissions:
   pull-requests: write
 
 env:
-  REPO_DEFAULT: rick1330/flakeradar-program
-  PROJECT_OWNER: rick1330
+  REPO_DEFAULT: ${{ github.repository }}
+  PROJECT_OWNER: ${{ github.repository_owner }}
   PROJECT_TITLE: FlakeRadar Roadmap
 
 jobs:
@@ -36,26 +36,38 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Install ajv-cli and ajv-formats
-        run: npm i -g ajv-cli ajv-formats
+      - name: Install ajv-cli
+        run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 -c ajv-formats
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
       - name: Dry-run seeding (no writes)
+        id: dryrun
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: "1"
           SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
-      - name: Comment summary on PR
+      - name: Ensure summary not empty
+        run: |
+          if ! [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            {
+              echo "### Issue Seed PR Check"
+              echo
+              echo "No planned changes or dry-run produced no diff."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Comment summary on PR (safe)
+        if: always()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           num=${{ github.event.pull_request.number }}
-          body=$(cat "$GITHUB_STEP_SUMMARY")
-          if [ -z "$body" ]; then
-            body="Issue seeding workflow completed. Check the workflow logs for details."
+          if [ -s "$GITHUB_STEP_SUMMARY" ]; then
+            gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
+          else
+            gh pr comment "$num" --body "Seed workflow ran. No summary generated (likely a no-op)."
           fi
-          gh pr comment "$num" --body "$body"
 
   apply-on-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -65,11 +77,11 @@ jobs:
         with: { persist-credentials: false }
       - uses: actions/setup-node@v4
         with: { node-version: "20" }
-      - name: Install ajv-cli and ajv-formats
-        run: npm i -g ajv-cli ajv-formats
+      - name: Install ajv-cli
+        run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 -c ajv-formats
-      - name: Show gh version (debug)
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
+      - name: gh version (debug)
         run: gh --version
       - name: Apply seeding (create/update/close)
         env:
