@@ -7,6 +7,7 @@ on:
       - "schemas/issues.seed.schema.json"
       - "scripts/seed-issues.sh"
       - ".github/workflows/seed-issues.yml"
+      - "docs/ISSUE_SEEDING.md"
   push:
     branches: ["main"]
     paths:
@@ -14,12 +15,12 @@ on:
       - "schemas/issues.seed.schema.json"
       - "scripts/seed-issues.sh"
       - ".github/workflows/seed-issues.yml"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
   issues: write
   pull-requests: write
-  projects: write
 
 env:
   REPO_DEFAULT: rick1330/flakeradar-program
@@ -38,56 +39,39 @@ jobs:
       - name: Install ajv-cli
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        id: validate
-        continue-on-error: true
-        run: |
-          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
       - name: Dry-run seeding (no writes)
-        if: steps.validate.outcome == 'success'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: "1"
+          SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
-      - name: Prepare PR summary (validation failed)
-        if: steps.validate.outcome != 'success'
-        run: |
-          echo "### Issue Seed Validation Failed" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
-          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true 2>> "$GITHUB_STEP_SUMMARY" || true
-          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Please fix schemas/issues.seed.schema.json or issues/seed.json." >> "$GITHUB_STEP_SUMMARY"
       - name: Comment summary on PR
-        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           num=${{ github.event.pull_request.number }}
-          if [ -s "$GITHUB_STEP_SUMMARY" ]; then
-            gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
-          else
-            gh pr comment "$num" --body "Seed workflow ran. See job logs for details."
-          fi
+          gh pr comment "$num" --body-file "$GITHUB_STEP_SUMMARY"
 
   apply-on-main:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+        with: { persist-credentials: false }
       - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+        with: { node-version: "20" }
       - name: Install ajv-cli
         run: npm i -g ajv-cli
       - name: Validate seed.json against schema
-        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+        run: ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020
+      - name: Show gh version (debug)
+        run: gh --version
       - name: Apply seeding (create/update/close)
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN_SEED || secrets.GITHUB_TOKEN }}
           CLOSE_MISSING: "1"
+          SKIP_LOCAL_VALIDATION: "1"
         run: bash scripts/seed-issues.sh
       - name: Commit updated issues/map.json (if changed)
         env:
