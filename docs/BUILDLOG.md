@@ -92,3 +92,13 @@ Format
 - Follow-ups
   - Create org/user Project "FlakeRadar Roadmap" (if not present) or set PROJECT_NUMBER
   - Add GH_TOKEN_SEED secret with repo+project scopes for cross‑repo writes
+
+2025-10-09 • WU‑009 • rick1330/flakeradar-program • Fix schema validation and project access issues
+- What/Why
+  - Resolved issues with JSON schema validation by adding ajv-formats package for URI format support. Improved schema structure for better readability. Disabled GitHub Projects integration in sandbox environment to avoid access issues during issue seeding.
+- Artifacts/Links
+  - Modified: schemas/issues.seed.schema.json (improved formatting and structure)
+  - Modified: scripts/seed-issues.sh (added ajv-formats for schema validation, disabled Projects v2 integration in sandbox)
+- Follow-ups
+  - Re-enable Projects v2 integration when proper access tokens are configured
+  - Continue testing issue seeding workflow in different environments
