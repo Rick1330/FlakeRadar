@@ -1,59 +1,65 @@
 name: Epic
-about: A high-level feature or initiative
-title: 'epic: '
-labels: ['epic']
+description: Track an initiative across gates and modules with goals, scope, and measurable outcomes.
+title: "EPIC: <short name>"
+labels:
+  - discussion
 body:
   - type: input
-    id: epic-id
+    id: summary
     attributes:
-      label: Epic ID
-      description: The unique identifier for this epic (e.g., EP-001)
-      placeholder: EP-001
+      label: Summary
+      description: One sentence describing the epic.
+      placeholder: e.g., Gate C Thin E2E (ingest → score → PR comment)
     validations:
       required: true
   - type: textarea
-    id: description
+    id: goals
     attributes:
-      label: Description
-      description: A clear and concise description of what this epic is about
-    validations:
-      required: true
-  - type: textarea
-    id: objectives
-    attributes:
-      label: Objectives
-      description: What are the key objectives of this epic?
-    validations:
-      required: true
-  - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: Acceptance Criteria
-      description: What must be true for this epic to be considered complete?
-    validations:
-      required: true
-  - type: input
-    id: milestone
-    attributes:
-      label: Milestone
-      description: Associated milestone (if any)
-      placeholder: Gate A
-  - type: input
-    id: project
-    attributes:
-      label: Project
-      description: Associated project board (if any)
-      placeholder: FlakeRadar Roadmap
-  - type: textarea
-    id: dependencies
-    attributes:
-      label: Dependencies
-      description: List any dependencies on other epics or stories
+      label: Goals / OKRs
+      description: What outcomes should this epic achieve? Tie to OKRs if applicable.
+      placeholder: |
+        - Ship thin E2E scenario
+        - Keep CI green while enforcing budgets
   - type: checkboxes
-    id: terms
+    id: gates
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](../../CODE_OF_CONDUCT.md)
+      label: Gates
       options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
+        - label: Gate A
+        - label: Gate B
+        - label: Gate C
+        - label: Gate D
+  - type: dropdown
+    id: modules
+    attributes:
+      label: Modules (multi-select)
+      multiple: true
+      options:
+        - ingest
+        - scoring
+        - ui
+        - bot
+        - docs
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope / Out of scope
+      placeholder: |
+        In:
+        - ...
+        Out:
+        - ...
+  - type: textarea
+    id: metrics
+    attributes:
+      label: Acceptance Metrics
+      description: Measurable outcomes (include budgets).
+      placeholder: |
+        - Ingest p95 < 2s for 5MB
+        - jest-axe zero violations on polished pages
+        - Entry bundle <150KB gz
+  - type: input
+    id: target
+    attributes:
+      label: Target date
+      placeholder: YYYY-MM-DD

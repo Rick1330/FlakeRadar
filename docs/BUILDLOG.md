@@ -103,3 +103,18 @@ Format
 - Follow-ups
   - Ensure a Projects v2 board "FlakeRadar Roadmap" exists or set PROJECT_NUMBER in workflow env
   - Add GH_TOKEN_SEED secret (repo + project scopes) for cross‑repo writes on main
+
+2025-10-09 • WU‑010 • rick1330/flakeradar-program • Fix seed workflow triggers + legacy issue forms
+- What/Why
+  - Fixed seed workflow to run on PRs from forks using pull_request_target; replaced legacy issue templates using 'about:' with valid Issue Forms using 'description:'; added legacy template checker and migration docs.
+- Artifacts/Links
+  - Updated: .github/workflows/seed-issues.yml
+  - Updated: .github/ISSUE_TEMPLATE/epic.yml
+  - Updated: .github/ISSUE_TEMPLATE/story.yml
+  - Updated: .github/ISSUE_TEMPLATE/bug.yml
+  - Added: .github/ISSUE_TEMPLATE/config.yml
+  - Added: scripts/find-legacy-issue-templates.sh
+  - Added: docs/ISSUE_FORMS_MIGRATION.md
+- Follow-ups
+  - Verify workflow runs correctly on PRs from forks
+  - Confirm no "about is not a permitted key" errors in issue forms

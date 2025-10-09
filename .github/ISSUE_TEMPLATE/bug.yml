@@ -1,60 +1,62 @@
-name: Bug Report
-about: Create a report to help us improve
-title: 'bug: '
-labels: ['bug', 'triage']
+name: Bug report
+description: Report a defect with steps to reproduce and expected behavior.
+title: "BUG: <short name>"
+labels:
+  - bug
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for taking the time to fill out this bug report!
   - type: textarea
-    id: what-happened
+    id: description
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      label: Description
+      description: What is broken?
     validations:
       required: true
   - type: textarea
-    id: reproduction
+    id: steps
     attributes:
-      label: How can we reproduce this?
-      description: Please provide steps to reproduce the issue.
+      label: Steps to reproduce
+      description: Provide minimal repro if possible.
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
-        4. See error
+        1. ...
+        2. ...
+        3. ...
     validations:
       required: true
   - type: textarea
-    id: environment
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: env
     attributes:
       label: Environment
-      description: |
-        Example:
-          - **OS**: Ubuntu 20.04
-          - **Node Version**: 16.14.0
-          - **Browser**: Chrome 98.0.4758.102
-      value: |
-        - OS:
-        - Node Version:
-        - Browser:
-      render: markdown
-    validations:
-      required: false
-  - type: textarea
-    id: logs
+      placeholder: OS, Node version, CI provider, test framework
+  - type: dropdown
+    id: severity
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-      render: shell
-  - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](../../CODE_OF_CONDUCT.md)
+      label: Severity
       options:
-        - label: I agree to follow this project's Code of Conduct
-          required: true
+        - S1 - Critical
+        - S2 - High
+        - S3 - Medium
+        - S4 - Low
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - ingest
+        - scoring
+        - ui
+        - bot
+        - docs

@@ -1,12 +1,17 @@
 name: "Seed Issues (validate + sync)"
 
 on:
-  pull_request:
+  # Safe PR path with write perms for comments, but DO NOT run untrusted scripts.
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited]
     paths:
       - "issues/seed.json"
       - "schemas/issues.seed.schema.json"
-      - "scripts/seed-issues.sh"
       - ".github/workflows/seed-issues.yml"
+      - "docs/ISSUE_SEEDING.md"
+  # Manual run
+  workflow_dispatch: {}
+  # Apply on main
   push:
     branches: ["main"]
     paths:
@@ -27,11 +32,18 @@ env:
   PROJECT_TITLE: FlakeRadar Roadmap
 
 jobs:
-  validate-and-dryrun:
-    if: github.event_name == 'pull_request'
+  pr-validate:
+    if: github.event_name == 'pull_request_target'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout base (safe default)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Checkout PR HEAD (read only)
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+          git checkout pr-${{ github.event.pull_request.number }}
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -41,25 +53,42 @@ jobs:
         id: validate
         continue-on-error: true
         run: |
-          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
-      - name: Dry-run seeding (no writes)
-        if: steps.validate.outcome == 'success'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: "1"
-        run: bash scripts/seed-issues.sh
-      - name: Prepare PR summary (validation failed)
-        if: steps.validate.outcome != 'success'
+          if [ -f schemas/issues.seed.schema.json ] && [ -f issues/seed.json ]; then
+            ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true
+          else
+            echo "No seed/schema changes in PR."
+          fi
+      - name: Check for legacy issue templates (about:)
+        id: legacy
+        continue-on-error: true
         run: |
-          echo "### Issue Seed Validation Failed" >> "$GITHUB_STEP_SUMMARY"
+          if [ -d ".github/ISSUE_TEMPLATE" ]; then
+            if grep -R --line-number -E '^[[:space:]-]*about:' .github/ISSUE_TEMPLATE || true; then
+              echo "found_legacy=true" >> $GITHUB_OUTPUT
+            else
+              echo "found_legacy=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "found_legacy=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Prepare PR summary
+        run: |
+          echo "### Issue Seed PR Check" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
-          ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true 2>> "$GITHUB_STEP_SUMMARY" || true
-          echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Please fix schemas/issues.seed.schema.json or issues/seed.json." >> "$GITHUB_STEP_SUMMARY"
-      - name: Comment summary on PR
-        if: always()
+          if [ "${{ steps.validate.outcome }}" != "success" ]; then
+            echo "**Schema validation failed**. See log below." >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+            ajv validate -s schemas/issues.seed.schema.json -d issues/seed.json --spec=draft2020 --strict=true 2>> "$GITHUB_STEP_SUMMARY" || true
+            echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Schema validation: OK" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.legacy.outputs.found_legacy }}" = "true" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo ":warning: Found legacy issue templates using 'about:'. Please update to Issue Forms (use 'description:' instead) or remove legacy templates. See docs/ISSUE_FORMS_MIGRATION.md." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Comment summary on PR (safe)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

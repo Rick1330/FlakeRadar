@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Q&A (GitHub Discussions)
+    url: https://github.com/rick1330/flakeradar-program/discussions/categories/q-a
+    about: Ask questions and get help.
+  - name: Ideas & Roadmap Proposals
+    url: https://github.com/rick1330/flakeradar-program/discussions/categories/ideas
+    about: Propose features and discuss trade-offs.
