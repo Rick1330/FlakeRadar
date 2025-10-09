@@ -74,3 +74,5 @@ Recent Improvements
 - Enhanced error handling: Repository access is validated before operations to prevent "repo not found" errors
 - Robust URL parsing: Improved parsing of GitHub issue URLs to reliably extract issue numbers
 - Better error messages: Clear, actionable error messages help diagnose issues quickly
+- Workflow resilience: Added measures to prevent job failures when PR comments are empty or blocked
+- Simplified git operations: Removed custom tokenized URLs in favor of default credentials for simpler configuration

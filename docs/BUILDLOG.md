@@ -112,3 +112,13 @@ Format
 - Follow-ups
   - Test issue seeding workflow with different repository targets
   - Monitor for any remaining edge cases in URL parsing
+
+2025-10-09 • WU‑011 • Rick1330/FlakeRadar • Simplify git push in apply-on-main job and improve workflow resilience
+- What/Why
+  - Simplified the git push operation in the apply-on-main job by using default credentials instead of custom tokenized URLs. Made the workflow more resilient by ensuring PR comments are never empty and adding continue-on-error for comment steps.
+- Artifacts/Links
+  - Modified: .github/workflows/seed-issues.yml (removed persist-credentials: false, simplified git push, added resilience measures)
+  - Modified: scripts/seed-issues.sh (ensured summary is never empty)
+- Follow-ups
+  - Monitor the workflow for successful execution on main branch
+  - Verify issues are properly created/updated and map.json is committed
