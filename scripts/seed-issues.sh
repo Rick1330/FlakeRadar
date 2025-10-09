@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 # FlakeRadar Issue Seeder (production-grade)
-# - Validates seed.json via schema (CI validates too)
-# - Multi-repo targeting via "repo" per item; fallback transfer option
-# - DRY_RUN=1 prints plan only
-# - CLOSE_MISSING=1 auto-closes issues removed from seed.json (comment + label "obsolete-by-seed")
-# - Creates standardized labels (with colors), milestones (Gate A-D, Sprint-xx)
-# - Rate-limited with retries
-# - Uses GH_TOKEN (repo/project scopes) — principle of least privilege
 
 set -euo pipefail
 
@@ -15,14 +8,20 @@ SEED="${SEED:-$ROOT_DIR/issues/seed.json}"
 SCHEMA="${SCHEMA:-$ROOT_DIR/schemas/issues.seed.schema.json}"
 MAP="${MAP:-$ROOT_DIR/issues/map.json}"
 
-REPO_DEFAULT="${REPO_DEFAULT:-rick1330/flakeradar-program}"
+# Default to the repo this workflow is running in if REPO_DEFAULT not set
+REPO_DEFAULT="${REPO_DEFAULT:-${GITHUB_REPOSITORY:-}}"
+if [[ -z "${REPO_DEFAULT}" ]]; then
+  # final fallback (not recommended)
+  REPO_DEFAULT="Rick1330/FlakeRadar"
+fi
+
 TRANSFER_FALLBACK="${TRANSFER_FALLBACK:-0}"
 DRY_RUN="${DRY_RUN:-0}"
 CLOSE_MISSING="${CLOSE_MISSING:-0}"
-SKIP_LOCAL_VALIDATION="${SKIP_LOCAL_VALIDATION:-1}"  # CI already validates; default to skip here
+SKIP_LOCAL_VALIDATION="${SKIP_LOCAL_VALIDATION:-1}"
 
-PROJECT_OWNER="${PROJECT_OWNER:-rick1330}"
-PROJECT_TITLE="${PROJECT_TITLE:-FlakeRadar Roadmap}"  # project steps disabled below
+PROJECT_OWNER="${PROJECT_OWNER:-${GITHUB_REPOSITORY_OWNER:-}}"
+PROJECT_TITLE="${PROJECT_TITLE:-FlakeRadar Roadmap}"
 
 GITHUB_OUTPUT="${GITHUB_OUTPUT:-/dev/null}"
 GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-/dev/null}"
@@ -36,24 +35,28 @@ ajv_validate() {
     return 0
   fi
   if command -v ajv >/dev/null; then
-    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020 -c ajv-formats || return 1
+    ajv validate -s "$SCHEMA" -d "$SEED" --spec=draft2020 || return 1
   else
     echo "ajv not found; skipping local schema validation (CI will check)"
   fi
 }
-
 sleep_throttle() { sleep 0.3; }
-retry() {
-  local max=${1:-5}; shift
-  local n=1
-  until "$@"; do
-    if (( n >= max )); then return 1; fi
-    sleep $(( n * n ))
-    n=$(( n + 1 ))
-  done
+retry() { local max=${1:-5}; shift; local n=1; until "$@"; do if (( n >= max )); then return 1; fi; sleep $(( n * n )); n=$(( n + 1 )); done; }
+
+# -------------- Sanity checks --------------
+ensure_repo() {
+  local repo="$1"
+  if (( DRY_RUN == 1 )); then
+    echo "PLAN: verify repo exists: $repo"
+    return 0
+  fi
+  if ! gh repo view "$repo" >/dev/null 2>&1; then
+    echo "ERROR: Target repo '$repo' not found or GH_TOKEN lacks access. Set REPO_DEFAULT correctly or add 'repo' per item." >&2
+    return 1
+  fi
 }
 
-# -------------- Labels (standard colors) --------------
+# -------------- Labels --------------
 declare -A LABELS_COLORS=(
   ["good first issue"]="7057ff" ["help wanted"]="008672" ["discussion"]="bfd4f2"
   ["gate:A"]="0e8a16" ["gate:B"]="5319e7" ["gate:C"]="fbca04" ["gate:D"]="d93f0b"
@@ -62,9 +65,8 @@ declare -A LABELS_COLORS=(
   ["priority:p1"]="e11d48" ["priority:p2"]="fb7185" ["priority:p3"]="fdba74"
   ["obsolete-by-seed"]="ededed"
 )
-
 ensure_labels() {
-  local repo="$1"
+  local repo="$1"; ensure_repo "$repo" || return 1
   for name in "${!LABELS_COLORS[@]}"; do
     local color="${LABELS_COLORS[$name]}"
     if (( DRY_RUN == 1 )); then
@@ -78,7 +80,7 @@ ensure_labels() {
 
 # -------------- Milestones --------------
 ensure_milestone() {
-  local repo="$1" title="$2"
+  local repo="$1" title="$2"; ensure_repo "$repo" || return 1
   local number
   number=$(gh api -X GET "repos/$repo/milestones?state=open" --jq ".[] | select(.title==\"$title\") | .number" 2>/dev/null || true)
   if [[ -z "${number:-}" ]]; then
@@ -91,17 +93,9 @@ ensure_milestone() {
   fi
 }
 
-auto_milestone_from_labels() {
-  case "$1" in
-    *"gate:A"*) echo "Gate A" ;; *"gate:B"*) echo "Gate B" ;;
-    *"gate:C"*) echo "Gate C" ;; *"gate:D"*) echo "Gate D" ;; *) echo "" ;;
-  esac
-}
+auto_milestone_from_labels() { case "$1" in *"gate:A"*) echo "Gate A";; *"gate:B"*) echo "Gate B";; *"gate:C"*) echo "Gate C";; *"gate:D"*) echo "Gate D";; *) echo "";; esac; }
 
-# -------------- Projects v2 (disabled here to simplify permissions) --------------
-# add_to_project() { :; }
-
-# -------------- Mapping helpers --------------
+# -------------- Mapping --------------
 map_init() { [[ -f "$MAP" ]] || echo "{}" > "$MAP"; }
 map_set() { local id="$1" repo="$2" number="$3"; local tmp; tmp="$(mktemp)"; jq ". + {\"$id\": {\"repo\": \"$repo\", \"number\": $number}}" "$MAP" > "$tmp" && mv "$tmp" "$MAP"; }
 map_get_repo() { jq -r ".\"$1\".repo // empty" "$MAP"; }
@@ -113,6 +107,76 @@ find_issue_by_seed_id() {
 }
 
 issue_url() { echo "https://github.com/$1/issues/$2"; }
+
+# -------------- Compose bodies --------------
+epic_body() {
+  local id="$1" body="$2" adr_links_csv="$3"
+  local adr_md=""
+  if [[ -n "$adr_links_csv" ]]; then
+    IFS=',' read -ra links <<< "$adr_links_csv"; adr_md=$'\n''ADR Links:'$'\n'
+    for l in "${links[@]}"; do adr_md+="- $l"$'\n'; done
+  fi
+  cat <<EOF
+<!-- seed-id: $id -->
+$body
+
+Definition of Done
+- [ ] Issues/stories linked and tracked
+- [ ] Acceptance metrics defined and measured
+- [ ] Budgets respected (a11y/perf/security/privacy)
+- [ ] WUs completed (commit + Build Log + Session State)
+$adr_md
+EOF
+}
+
+story_body() {
+  local id="$1" epic_url="$2" wu="$3" ac_lines="$4" adr_links_csv="$5" dod_raw="$6"
+  local adr_md=""
+  if [[ -n "$adr_links_csv" ]]; then
+    IFS=',' read -ra links <<< "$adr_links_csv"; adr_md=$'\n''ADR Links:'$'\n'
+    for l in "${links[@]}"; do adr_md+="- $l"$'\n'; done
+  fi
+  local dod_md=""
+  if [[ -n "$dod_raw" ]]; then
+    while IFS= read -r line; do [[ -z "$line" ]] && continue; dod_md+="- [ ] $line"$'\n'; done <<< "$dod_raw"
+  else
+    dod_md="- [ ] Tests updated/added"$'\n'
+    dod_md+="- [ ] Docs updated (README/ADR)"$'\n'
+    dod_md+="- [ ] Budgets enforced (a11y/perf/security/privacy)"$'\n'
+    dod_md+="- [ ] Labels applied (gate:*, module:*, persona:*, priority:*)"$'\n'
+    dod_md+="- [ ] WU completed (commit + Build Log + Session State)"$'\n'
+  fi
+  cat <<EOF
+<!-- seed-id: $id -->
+Parent Epic: $epic_url
+
+WU: ${wu:-N/A}
+
+Acceptance Criteria
+$ac_lines
+Definition of Done
+$dod_md
+$adr_md
+EOF
+}
+
+# -------------- Create/update helpers --------------
+create_issue_and_get_number() {
+  local repo="$1" title="$2" body="$3" labels_csv="$4"
+  ensure_repo "$repo" || return 1
+  local url
+  url=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body" -l "$labels_csv")
+  if [[ -z "$url" ]]; then
+    echo "ERROR: gh issue create returned empty output for $repo. Check token permissions." >&2
+    return 1
+  fi
+  if [[ "$url" =~ /issues/([0-9]+) ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo "ERROR: Could not parse issue number from output: $url" >&2
+    return 1
+  fi
+}
 
 assign_users() {
   local repo="$1" number="$2" assignees_csv="$3"
@@ -145,8 +209,7 @@ close_missing() {
   local keys; keys=$(jq -r 'keys[]' "$MAP" 2>/dev/null || true)
   for k in $keys; do
     if ! grep -qx "$k" <<< "$all_ids_present"; then
-      local repo number
-      repo=$(map_get_repo "$k"); number=$(map_get_number "$k")
+      local repo number; repo=$(map_get_repo "$k"); number=$(map_get_number "$k")
       [[ -z "$repo" || -z "$number" ]] && continue
       if (( DRY_RUN == 1 )); then
         echo "PLAN: close $(issue_url "$repo" "$number") as obsolete-by-seed"
@@ -160,74 +223,6 @@ close_missing() {
   done
 }
 
-# -------------- Body composers --------------
-epic_body() {
-  local id="$1" body="$2" adr_links_csv="$3"
-  local adr_md=""
-  if [[ -n "$adr_links_csv" ]]; then
-    IFS=',' read -ra links <<< "$adr_links_csv"
-    adr_md=$'\n''ADR Links:'$'\n'
-    for l in "${links[@]}"; do adr_md+="- $l"$'\n'; done
-  fi
-  cat <<EOF
-<!-- seed-id: $id -->
-$body
-
-Definition of Done
-- [ ] Issues/stories linked and tracked
-- [ ] Acceptance metrics defined and measured
-- [ ] Budgets respected (a11y/perf/security/privacy)
-- [ ] WUs completed (commit + Build Log + Session State)
-$adr_md
-EOF
-}
-
-story_body() {
-  local id="$1" epic_url="$2" wu="$3" ac_lines="$4" adr_links_csv="$5" dod_raw="$6"
-  local adr_md=""
-  if [[ -n "$adr_links_csv" ]]; then
-    IFS=',' read -ra links <<< "$adr_links_csv"
-    adr_md=$'\n''ADR Links:'$'\n'
-    for l in "${links[@]}"; do adr_md+="- $l"$'\n'; done
-  fi
-
-  local dod_md=""
-  if [[ -n "$dod_raw" ]]; then
-    while IFS= read -r line; do
-      [[ -z "$line" ]] && continue
-      dod_md+="- [ ] $line"$'\n'
-    done <<< "$dod_raw"
-  else
-    dod_md="- [ ] Tests updated/added"$'\n'
-    dod_md+="- [ ] Docs updated (README/ADR)"$'\n'
-    dod_md+="- [ ] Budgets enforced (a11y/perf/security/privacy)"$'\n'
-    dod_md+="- [ ] Labels applied (gate:*, module:*, persona:*, priority:*)"$'\n'
-    dod_md+="- [ ] WU completed (commit + Build Log + Session State)"$'\n'
-  fi
-
-  cat <<EOF
-<!-- seed-id: $id -->
-Parent Epic: $epic_url
-
-WU: ${wu:-N/A}
-
-Acceptance Criteria
-$ac_lines
-Definition of Done
-$dod_md
-$adr_md
-EOF
-}
-
-# -------------- Create/update helpers (no --json flags) --------------
-create_issue_and_get_number() {
-  local repo="$1" title="$2" body="$3" labels_csv="$4"
-  # gh issue create prints the issue URL; parse number
-  local url
-  url=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body" -l "$labels_csv")
-  sed -E 's#.*/issues/([0-9]+).*#\1#' <<< "$url" | tr -d '\r\n'
-}
-
 # -------------- Main --------------
 main() {
   jq_bin; gh_bin
@@ -237,15 +232,20 @@ main() {
   local summary=""
   local ids_present=""
 
-  # Target repos (unique)
+  # Build target repos list (default to current repo)
   local repos=()
-  while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.epics[].repo // $R' "$SEED")
-  while IFS= read -r repo; do repos+=("$repo"); done < <(jq -r --arg R "$REPO_DEFAULT" '.stories[].repo // $R' "$SEED")
+  while IFS= read -r repo; do repos+=("${repo:-$REPO_DEFAULT}"); done < <(jq -r --arg R "$REPO_DEFAULT" '.epics[] | (.repo // $R)' "$SEED")
+  while IFS= read -r repo; do repos+=("${repo:-$REPO_DEFAULT}"); done < <(jq -r --arg R "$REPO_DEFAULT" '.stories[] | (.repo // $R)' "$SEED")
   mapfile -t repos < <(printf "%s\n" "${repos[@]}" | sort -u)
+
+  # Sanity-check repos before doing work
+  for r in "${repos[@]}"; do ensure_repo "$r"; done
+
+  # Ensure labels and milestones
   for r in "${repos[@]}"; do ensure_labels "$r"; done
   for r in "${repos[@]}"; do for m in "Gate A" "Gate B" "Gate C" "Gate D"; do ensure_milestone "$r" "$m"; done; done
 
-  # Epics first
+  # Epics
   while IFS= read -r e; do
     local id title labels body repo milestone assignees adrLinks_csv
     id=$(jq -r '.id' <<<"$e")
@@ -284,7 +284,7 @@ main() {
     ids_present+="$id"$'\n'
   done < <(jq -c '.epics[]' "$SEED")
 
-  # Stories next
+  # Stories
   while IFS= read -r s; do
     local id epicId title labels wu repo ac_lines milestone assignees adrLinks_csv dod_raw
     id=$(jq -r '.id' <<<"$s")
@@ -307,7 +307,7 @@ main() {
     epic_repo=$(map_get_repo "$epicId")
     epic_number=$(map_get_number "$epicId")
     if [[ -z "$epic_repo" || -z "$epic_number" ]]; then
-      echo "ERROR: Epic $epicId not found in map; ensure epics created first." >&2
+      echo "ERROR: Epic $epicId not found in map; ensure epics created first (creation likely failed earlier)." >&2
       exit 1
     fi
     epic_url=$(issue_url "$epic_repo" "$epic_number")
@@ -323,8 +323,7 @@ main() {
           summary+="- [STORY] $id → created #$number in $repo: \"$title\"\n"
         else
           if (( TRANSFER_FALLBACK == 1 )); then
-            local fb_url
-            fb_url=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion")
+            local fb_url; fb_url=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion")
             number="$(sed -E 's#.*/issues/([0-9]+).*#\1#' <<< "$fb_url" | tr -d '\r\n')"
             summary+="- [STORY] $id → created in $REPO_DEFAULT (fallback), needs transfer to $repo\n"
             repo="$REPO_DEFAULT"
@@ -353,14 +352,10 @@ main() {
 
   echo -e "Seed Summary:\n$summary"
   {
-    echo "summary<<EOF"
-    echo -e "$summary"
-    echo "EOF"
+    echo "summary<<EOF"; echo -e "$summary"; echo "EOF";
   } >> "$GITHUB_OUTPUT"
   {
-    echo "### Issue Seed Summary"
-    echo
-    echo -e "$summary"
+    echo "### Issue Seed Summary"; echo; echo -e "$summary";
   } >> "$GITHUB_STEP_SUMMARY"
 }
 
