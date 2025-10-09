@@ -1,1 +1,98 @@
-{}
+{
+  "EP-001": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 12
+  },
+  "EP-002": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 13
+  },
+  "EP-003": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 14
+  },
+  "EP-004": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 15
+  },
+  "ST-001": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 16
+  },
+  "ST-002": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 17
+  },
+  "ST-003": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 18
+  },
+  "ST-004": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 19
+  },
+  "ST-005": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 20
+  },
+  "ST-006": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 21
+  },
+  "ST-101": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 22
+  },
+  "ST-102": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 23
+  },
+  "ST-103": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 24
+  },
+  "ST-104": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 25
+  },
+  "ST-201": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 26
+  },
+  "ST-202": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 27
+  },
+  "ST-203": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 28
+  },
+  "ST-204": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 29
+  },
+  "ST-205": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 30
+  },
+  "ST-206": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 31
+  },
+  "ST-301": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 32
+  },
+  "ST-302": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 33
+  },
+  "ST-303": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 34
+  },
+  "ST-304": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 35
+  }
+}
