@@ -89,7 +89,17 @@ ensure_labels() {
 ensure_milestone() {
   local repo="$1" title="$2"
   local number
-  number=$(gh api -X GET "repos/$repo/milestones?state=open" --jq ".[] | select(.title==\"$title\") | .number" 2>/dev/null || true)
+  # Use a temporary file to capture the output and extract the number
+  local temp_output
+  temp_output=$(mktemp)
+  if gh api -X GET "repos/$repo/milestones?state=open" > "$temp_output" 2>&1; then
+    # Extract the milestone number from the output using jq locally
+    number=$(jq -r ".[] | select(.title==\"$title\") | .number" "$temp_output" 2>/dev/null || true)
+    rm "$temp_output"
+  else
+    rm "$temp_output"
+    number=""
+  fi
   if [[ -z "${number:-}" ]]; then
     if (( DRY_RUN == 1 )); then
       echo "PLAN: create milestone '$title' in $repo"
@@ -147,9 +157,19 @@ map_get_number() { jq -r ".\"$1\".number // empty" "$MAP"; }
 
 find_issue_by_seed_id() {
   local repo="$1" id="$2"
-  gh issue list -R "$repo" --state all \
-    --search "in:body \"seed-id: $id\"" \
-    --json number --jq '.[0].number' 2>/dev/null
+  # Use a temporary file to capture the output and extract the number
+  local temp_output
+  temp_output=$(mktemp)
+  if gh issue list -R "$repo" --state all --search "in:body \"seed-id: $id\"" > "$temp_output" 2>&1; then
+    # Extract the issue number from the output
+    local number
+    number=$(grep -oE '#[0-9]+' "$temp_output" | head -1 | tr -d '#')
+    rm "$temp_output"
+    echo "$number"
+  else
+    rm "$temp_output"
+    return 1
+  fi
 }
 
 issue_url() { echo "https://github.com/$1/issues/$2"; }
@@ -307,9 +327,19 @@ main() {
         summary+="- [EPIC] $id → create in $repo: \"$title\"\n"
         number="1" # Assign a dummy number for DRY_RUN
       else
-        number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq ".number")
-        sleep_throttle
-        summary+="- [EPIC] $id → created #$number in $repo: \"$title\"\n"
+        # Use a temporary file to capture the output and extract the number
+        local temp_output
+        temp_output=$(mktemp)
+        if retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" > "$temp_output" 2>&1; then
+          number=$(grep -oE '#[0-9]+' "$temp_output" | head -1 | tr -d '#')
+          rm "$temp_output"
+          sleep_throttle
+          summary+="- [EPIC] $id → created #$number in $repo: \"$title\"\n"
+        else
+          cat "$temp_output"
+          rm "$temp_output"
+          exit 1
+        fi
       fi
     else
       if (( DRY_RUN == 1 )); then
@@ -342,12 +372,12 @@ main() {
     repo=$(jq -r --arg R "$REPO_DEFAULT" '.repo // $R' <<<"$s")
     milestone=$(jq -r '.milestone // empty' <<<"$s")
     assignees=$(jq -r '.assignees // [] | join(",")' <<<"$s")
-    adrLinks_csv=$(jq -r '.adrLinks // [] | join(",")' <<<"$s")
+    adrLinks_csv=$(jq -r '.adrLinks // [] | join(",")'" <<<"$s")
     dod_lines=$(jq -r '.dod // [] | .[]' <<<"$s" | sed 's/^/- /')
 
     [[ -z "$milestone" ]] && milestone="$(auto_milestone_from_labels "$labels")"
 
-    # Compose AC markdown bullets
+    # Compose AC metadata
     ac_lines=""
     while IFS= read -r a; do ac_lines+="- $a"$'\n'; done < <(jq -r '.acceptanceCriteria[]' <<<"$s")
 
@@ -369,17 +399,31 @@ main() {
         summary+="- [STORY] $id → create in $repo: \"$title\"\n"
       else
         # Attempt create in target repo
-        if number=$(retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" --json number --jq '.number'); then
+        local temp_output
+        temp_output=$(mktemp)
+        if retry 5 gh issue create -R "$repo" -t "$title" -b "$body_md" -l "$labels" > "$temp_output" 2>&1; then
+          number=$(grep -oE '#[0-9]+' "$temp_output" | head -1 | tr -d '#')
+          rm "$temp_output"
           sleep_throttle
           summary+="- [STORY] $id → created #$number in $repo: \"$title\"\n"
         else
           if (( TRANSFER_FALLBACK == 1 )); then
             # Create in default repo and mark needs-transfer
-            number=$(retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion" --json number --jq '.number')
-            sleep_throttle
-            summary+="- [STORY] $id → created in $REPO_DEFAULT (fallback), needs transfer to $repo\n"
-            repo="$REPO_DEFAULT"
+            if retry 5 gh issue create -R "$REPO_DEFAULT" -t "$title" -b "$body_md"$'\n\n> NOTE: Needs transfer to '"$repo" -l "$labels,discussion" > "$temp_output" 2>&1; then
+              number=$(grep -oE '#[0-9]+' "$temp_output" | head -1 | tr -d '#')
+              rm "$temp_output"
+              sleep_throttle
+              summary+="- [STORY] $id → created in $REPO_DEFAULT (fallback), needs transfer to $repo\n"
+              repo="$REPO_DEFAULT"
+            else
+              cat "$temp_output"
+              rm "$temp_output"
+              echo "ERROR: Failed to create $id in $repo" >&2
+              exit 1
+            fi
           else
+            cat "$temp_output"
+            rm "$temp_output"
             echo "ERROR: Failed to create $id in $repo" >&2
             exit 1
           fi
