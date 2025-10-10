@@ -94,5 +94,21 @@
   "ST-304": {
     "repo": "Rick1330/FlakeRadar",
     "number": 35
+  },
+  "ST-401": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 42
+  },
+  "ST-402": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 43
+  },
+  "ST-403": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 44
+  },
+  "ST-404": {
+    "repo": "Rick1330/FlakeRadar",
+    "number": 45
   }
 }
