@@ -10,6 +10,9 @@ Planned initial ADRs (to be added in later packets):
 - 0003 — Standalone MVP; hosted add‑ons later • Proposed
 
 Index
+- 0001 • Project name and scope ("FlakeRadar") • Proposed • 2025-10-10
+- 0002 • Public OSS under Apache‑2.0 • Proposed • 2025-10-10
+- 0003 • Standalone MVP; hosted add‑ons later • Proposed • 2025-10-10
 - 0004 • Framework-specific scoring parameters • Proposed • 2025-10-10
 - 0005 • PR bot authentication strategy • Proposed • 2025-10-10
 - 0006 • Data retention flexibility • Proposed • 2025-10-10
