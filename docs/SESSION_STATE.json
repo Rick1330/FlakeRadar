@@ -1,5 +1,5 @@
 {
-  "lastWU": 13,
+  "lastWU": 15,
   "openPRs": [],
-  "nextWUs": ["WU-014 Monitor community engagement", "WU-015 Gather feedback on flake scoring heuristics"]
+  "nextWUs": ["WU-016 Seed delta applies (CI)", "WU-017 Research Brief v1.1", "WU-018 Docs v1.1 + ADRs"]
 }

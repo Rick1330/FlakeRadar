@@ -55,3 +55,7 @@ How to Contribute (high‑level; details in CONTRIBUTING.md later)
 
 —
 Maintainers: @rick1330 (founding maintainer). More maintainers to be added via GOVERNANCE.md in Gate A.
+
+## Product Requirements
+
+For detailed product requirements, see [PRD v1.0](docs/PRD.md).
