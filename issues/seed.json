@@ -268,6 +268,58 @@
         "Adapters for CircleCI/Gradle/Mocha",
         "Examples and benchmarks provided"
       ]
+    },
+    {
+      "id": "ST-401",
+      "epicId": "EP-003",
+      "title": "Dashboard UI implementation",
+      "labels": ["gate:C", "persona:qa", "module:ui", "priority:p1"],
+      "wu": "WU-203",
+      "acceptanceCriteria": [
+        "Flaky tests page with sortable table (score, test name, last failure, trend)",
+        "Trends page with time-series charts showing flake count over 30 days",
+        "Repository overview with health metrics and top offenders",
+        "All pages meet WCAG 2.2 AA accessibility standards"
+      ]
+    },
+    {
+      "id": "ST-402", 
+      "epicId": "EP-004",
+      "title": "Remediation playbooks",
+      "labels": ["gate:D", "persona:qa", "module:docs", "priority:p2"],
+      "wu": "WU-303",
+      "acceptanceCriteria": [
+        "Framework-specific playbooks for JUnit, Jest, and PyTest",
+        "Coverage for top 5 flake categories: timing, resources, dependencies, order, environment",
+        "Playbooks linked from PR comments with test-specific context",
+        "Community contribution workflow for adding new playbooks"
+      ]
+    },
+    {
+      "id": "ST-403",
+      "epicId": "EP-003", 
+      "title": "Token management UI",
+      "labels": ["gate:C", "persona:em", "module:ui", "priority:p2"],
+      "wu": "WU-203",
+      "acceptanceCriteria": [
+        "Repository token generation and rotation interface",
+        "Display last 4 digits only for security",
+        "HMAC signature validation documentation",
+        "Audit log of token creation and usage events"
+      ]
+    },
+    {
+      "id": "ST-404",
+      "epicId": "EP-004",
+      "title": "Ownership mapping and hints", 
+      "labels": ["gate:D", "persona:sre", "module:scoring", "priority:p2"],
+      "wu": "WU-302",
+      "acceptanceCriteria": [
+        "CODEOWNERS file import and parsing",
+        "Manual ownership overrides via UI",
+        "Confidence scoring for ownership hints",
+        "Integration with PR comments and dashboard views"
+      ]
     }
   ]
 }

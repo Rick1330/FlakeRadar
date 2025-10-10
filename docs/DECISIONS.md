@@ -10,4 +10,9 @@ Planned initial ADRs (to be added in later packets):
 - 0003 — Standalone MVP; hosted add‑ons later • Proposed
 
 Index
-- (none yet)
+- 0004 • Framework-specific scoring parameters • Proposed • 2025-10-10
+- 0005 • PR bot authentication strategy • Proposed • 2025-10-10
+- 0006 • Data retention flexibility • Proposed • 2025-10-10
+- 0007 • Telemetry boundaries and community trust • Proposed • 2025-10-10
+- 0008 • Multi-tenancy preparation strategy • Proposed • 2025-10-10
+- 0009 • Scoring processing model • Proposed • 2025-10-10
