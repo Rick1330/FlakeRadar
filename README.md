@@ -14,7 +14,7 @@ Badges (placeholders; wire up after repo creation)
 - License: Apache-2.0
 - CI: pending
 - CodeQL: pending
-- Discussions: enabled (planned)
+- Discussions: [enabled](https://github.com/Rick1330/FlakeRadar/discussions)
 
 Quick Start (for these docs)
 1) Read docs/01-charter.md for vision, OKRs, constraints, and quality bars.  

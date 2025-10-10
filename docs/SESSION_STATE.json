@@ -1,5 +1,5 @@
 {
-  "lastWU": 11,
-  "openPRs": ["fix-gh-issue-create-conflict"],
-  "nextWUs": ["WU-012 Test issue seeding workflow", "WU-013 Monitor workflow execution"]
+  "lastWU": 13,
+  "openPRs": [],
+  "nextWUs": ["WU-014 Monitor community engagement", "WU-015 Gather feedback on flake scoring heuristics"]
 }
