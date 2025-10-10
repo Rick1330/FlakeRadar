@@ -1,4 +1,4 @@
-# FlakeRadar — Program Charter (Gate A)
+# FlakeRadar — Program Charter v1.1 (Gate A)
 
 Purpose
 - Build an OSS, CI‑native flaky test detection and remediation tool that teams love.
@@ -17,7 +17,7 @@ Personas
 - SRE: track test health, reduce incident risk.
 - Developers: get PR‑level feedback and clear next steps.
 
-Objectives & Key Results (Gate A → D overview)
+Objectives &amp; Key Results (Gate A → D overview)
 - O1 (Gate A: Weeks 1–2) Foundation and PRD
   - KR1: Deliver Charter, Execution Plan, Architecture Brief outline, Tool Playbook, Risk/Compliance docs.
   - KR2: Produce PRD v1.0 via mgx.dev; approve Gate A.
@@ -25,12 +25,13 @@ Objectives & Key Results (Gate A → D overview)
 - O2 (Gate B: Weeks 3–8) UI + App Scaffold
   - KR: @flakeradar/ui v0.1.0, Next.js app Option A with CI green; a11y/perf budgets enforced.
 - O3 (Gate C: Weeks 9–12) Thin E2E
-  - KR: ingest → score → quarantine comment flow on a sample repo; protected main stays green.
+  - KR1: ingest → score → quarantine comment flow on a sample repo; protected main stays green.
+  - KR2: Framework-specific scoring parameters implemented with configurable thresholds.
 - O4 (Gate D: Weeks 13–16) Community Launch
   - KR: CONTRIBUTING, good‑first‑issues, docs site, CLI, integrations roadmap.
 
 Scope (MVP)
-- Ingest results from GitHub Actions (JUnit XML, Jest, PyTest).
+- Ingest results from GitHub Actions (JUnit XML, Jest, PyTest); CircleCI/GitLab CI in Gate D.
 - Compute flake scores over time (stability index, failure clustering, recency weighting).
 - Quarantine bot: PR comments/labels and Slack/webhook alerts.
 - Dashboards: test health trends, flaky tests list, ownership hints.
@@ -39,10 +40,10 @@ Scope (MVP)
 Non‑Goals (MVP)
 - Heavy ML models for flake prediction.
 - Deep static analysis or language‑specific AST tooling.
-- Broad multi‑CI support beyond GitHub Actions (expand later).
+- Broad multi‑CI support beyond GitHub Actions (expand in Gate D).
 - On‑prem enterprise features; SOC 2 certification (planned later).
 
-Constraints & Principles
+Constraints &amp; Principles
 - OSS, public repo; license Apache‑2.0.
 - Stack: TypeScript, Next.js/Node, Postgres, Tailwind, GitHub Actions.
 - Region/laws: Global; privacy‑by‑design; minimal PII; GDPR aware; SOC 2 later.
@@ -52,8 +53,8 @@ Constraints & Principles
 Quality Bars (non‑negotiable)
 - Accessibility: WCAG 2.2 AA; jest‑axe zero violations on polished pages/components.
 - Performance: entry bundle <150KB gzipped; route‑level code splitting; SSR‑friendly; Core Web Vitals tracked.
-- Security: CSP via next-safe-middleware; no secrets in repo; .env.example only; CodeQL weekly; Dependabot enabled; protected main (require “ci” + CodeQL, 1 review, linear history); license scanning allowlist (Apache/MIT/BSD).
-- Privacy: minimal PII; opt‑in telemetry with disclosure; retention defaults 30 days for anonymous usage logs [ASSUMPTION]; documented DPA stance for hosted later.
+- Security: CSP via next-safe-middleware; no secrets in repo; .env.example only; CodeQL weekly; Dependabot enabled; protected main (require "ci" + CodeQL, 1 review, linear history); license scanning allowlist (Apache/MIT/BSD).
+- Privacy: minimal PII; opt‑in telemetry with disclosure; retention defaults 30 days for anonymous usage logs; documented DPA stance for hosted later.
 
 Governance (OSS)
 - Model: Maintainer‑led with lazy consensus; founding maintainer @rick1330.
@@ -70,8 +71,8 @@ Risks (pointer; detailed in Risk Register)
 - Signal quality across frameworks; privacy of logs; OSS sustainability; CI variability. Mitigations tracked in docs/05-risk-register.md.
 
 Assumptions
-- Node.js 20 LTS; pnpm; default branch “main”; Discussions enabled.
-- Telemetry provider to be selected in Gate B (or skipped for OSS) [ASSUMPTION].
+- Node.js 20 LTS; pnpm; default branch "main"; Discussions enabled.
+- Telemetry provider to be selected in Gate B (or skipped for OSS).
 
 Gate A Deliverables (approval checklist)
 - Charter (this doc), Execution Plan, Architecture Brief outline, Tool Playbook, Risk Register, Compliance Brief, initial ADRs, issue templates + seed, governance docs.

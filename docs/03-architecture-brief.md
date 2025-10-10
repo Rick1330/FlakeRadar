@@ -1,7 +1,7 @@
-# FlakeRadar — Architecture Brief v0.1 (Gate A)
+# FlakeRadar — Architecture Brief v1.1 (Gate A)
 
 Status
-- Version: 0.1 (outline for Gate A; will be revised after Manus/mgx.dev)
+- Version: 1.1 (updated post-research for framework-specific parameters)
 - Owners: @rick1330 (maintainer); Orchestrator (this program)
 - Scope: OSS MVP (Next.js + Node, Postgres, minimal GitHub App)
 
@@ -69,53 +69,57 @@ External:
   - Scoring: rolling window, volatility, recency weighting, clustering, classification.
 - PR Bot (GitHub App)
   - PRLookup: find open PR(s) by commit SHA.
-  - Commenter: idempotent update with hidden marker; add/remove “flaky-tests” label.
+  - Commenter: idempotent update with hidden marker; add/remove "flaky-tests" label.
 - Data Access
   - Repositories for Repo, TestCase, TestRun, FlakeScore, OwnerMap with input validation and SQL params.
 - Notifications (optional)
   - Slack/Webhooks publisher (rate‑limited; disabled by default in OSS).
 
 5) Ingestion Design (GitHub Actions → FlakeRadar)
-- Recommended mode: Direct POST from CI to FlakeRadar’s /api/ingest.
+- Recommended mode: Direct POST from CI to FlakeRadar's /api/ingest.
 - Authentication
   - Per‑repo token (random, 32+ chars) created in FlakeRadar UI and stored as a GitHub Actions secret.
   - HMAC signature header X-FR-Sig = HMAC-SHA256(body, repo_secret) for tamper check.
 - Request shape (multipart or JSON)
-  - Headers: Authorization: Bearer <repo_token>; X-FR-Sig: <hmac>
+  - Headers: Authorization: Bearer <repo_token>; X-FR-Sig: <hmac>; X-FR-Framework: <framework>; X-FR-Rerun-Count: <count>
   - Fields:
     - repo_full_name (e.g., owner/repo), commit_sha, branch, run_id, workflow_name, created_at
     - framework: junit|jest|pytest
+    - rerun_count: number of times this test run was retried (default: 0)
     - report[]: one or more JUnit XML files or JSON summaries
 - Example GitHub Action step
       - name: Upload test report to FlakeRadar
         run: |
           curl -sS -X POST "$FRA_URL/api/ingest" \
             -H "Authorization: Bearer $FRA_TOKEN" \
+            -H "X-FR-Framework: junit" \
+            -H "X-FR-Rerun-Count: ${RERUN_COUNT:-0}" \
             -H "Content-Type: multipart/form-data" \
-            -F repo_full_name=${{ github.repository }} \
-            -F commit_sha=${{ github.sha }} \
-            -F branch=${{ github.ref_name }} \
-            -F run_id=${{ github.run_id }} \
+            -F repo_full_name=$ github.repository  \
+            -F commit_sha=$ github.sha  \
+            -F branch=$ github.ref_name  \
+            -F run_id=$ github.run_id  \
             -F framework=junit \
             -F report=@junit.xml
         env:
-          FRA_URL: https://flakeradar.dev   # [ASSUMPTION: demo]
-          FRA_TOKEN: ${{ secrets.FLAKERADAR_TOKEN }}
+          FRA_URL: https://flakeradar.dev
+          FRA_TOKEN: $ secrets.FLAKERADAR_TOKEN 
 - Ingest steps
   1) AuthN/AuthZ: validate token → repo; verify HMAC; rate limit by repo+IP.
   2) Parse: detect format; streaming parse to normalized TestRun/TestCase records.
   3) Persist: upsert Repo, ensure TestCase exists; insert TestRun rows; compute aggregates.
-  4) Score: update rolling FlakeScore for affected tests.
+  4) Score: update rolling FlakeScore for affected tests with framework-specific parameters.
   5) Notify: if commit belongs to an open PR, enqueue PR Bot job (idempotent); optionally Slack/webhook.
-- Limits & budgets
+- Limits &amp; budgets
   - Max payload: 5 MB; up to 50k testcases per run (streaming parser).
   - Ingest p95 < 2s for 5 MB; avoid synchronous external calls.
+  - Rate limits: 100 requests/hour per repo token; ≤10 PR bot writes/min per repo.
   - Dedup: idempotency by (repo_id, commit_sha, run_id).
 
 6) API Catalog (MVP)
 - POST /api/ingest → { accepted, runId, stats } (private; token‑gated)
-- GET /api/repos/:id/tests?flaky=true&limit=50&cursor=… (paginated)
-- GET /api/repos/:id/flake-trends?from=…&to=…
+- GET /api/repos/:id/tests?flaky=true&amp;limit=50&amp;cursor=… (paginated)
+- GET /api/repos/:id/flake-trends?from=…&amp;to=…
 - POST /api/pr/:number/comment (internal; PR Bot only)
 - POST /api/repos/:id/owners/refresh (Gate D; imports CODEOWNERS)
 - DELETE /api/repos/:id (data deletion; owner‑only)
@@ -134,9 +138,9 @@ External:
         | owner   |                      | name     |                      | status (pass|fail|skip) |
         | default_branch|                | framework|                      | duration_ms |
         | visibility   |                 | tags[]   |                      | started_at  |
-        | created_at   |                 | created_at|                     | created_at  |
-        +---------+                      +----------+                      +-----------+
-                                              |
+        | created_at   |                 | created_at|                     | rerun_count |
+        +---------+                      +----------+                      | created_at  |
+                                              |                            +-----------+
                                               | 1      1
                                               v
                                         +-------------+
@@ -164,7 +168,7 @@ External:
         | source    |  (CODEOWNERS|manual)
         | created_at|
         +-----------+
-- Keys & indexes
+- Keys &amp; indexes
   - TestCase unique (repo_id, path, name, framework)
   - TestRun index (repo_id, started_at desc), index (test_case_id, started_at desc)
   - FlakeScore unique (test_case_id), partial index WHERE score >= 60
@@ -172,8 +176,13 @@ External:
 - Retention
   - TestRun rows: 30 days by default; aggregates (FlakeScore) kept rolling; repo‑scoped purge supported.
 
-8) Flake Scoring Heuristics v0.1
-- Inputs (window N = min(50, all runs))
+8) Flake Scoring Heuristics v1.1
+- Framework-Specific Windows
+  - Jest: N = min(30, all runs) - rapid feedback for frontend tests
+  - JUnit: N = min(50, all runs) - enterprise stability requirements  
+  - PyTest: N = min(40, all runs) - scientific computing balance
+  - Configurable per repository via /api/repos/:id/config
+- Inputs (window N)
   - f[i] ∈ {0,1} for fail/pass (1 = fail)
   - toggles = number of transitions between pass and fail
   - recency weights w[i] = exp(-λ*(N-i)), λ = ln(2)/7 (half‑life = 7 runs)
@@ -189,7 +198,8 @@ External:
   - flaky if: pass_rate ∈ [0.60, 0.98] AND volatility ≥ 0.20 AND toggles ≥ 2 in last 10 runs
   - persistent-fail if: pass_rate < 0.60 AND longest_fail_streak ≥ 3 (not flaky; separate handling)
 - Reruns
-  - Count initial failures even if rerun passed; weight rerun‑induced failures at 0.5 [ASSUMPTION].
+  - Count initial failures even if rerun passed; weight rerun‑induced failures at 0.5 (configurable per repo).
+  - Use X-FR-Rerun-Count header to track rerun attempts.
 - Defaults
   - Action threshold: F ≥ 60 → quarantine candidate (configurable per repo).
 
@@ -203,21 +213,21 @@ External:
           → upsert PR comment (idempotent via <!-- flakeradar:pr-comment:v1 --> marker)
           → add label "flaky-tests" if any candidates
           → optionally set a commit check summary
-- Rate limits & safety
+- Rate limits &amp; safety
   - ≤ 10 writes/min/repo; exponential backoff on secondary rate limit.
   - Never spam: single comment per PR updated in place.
   - Failure handling: log + retry up to 3 times; drop on persistent 4xx.
 
 10) A11y/Perf/Security/Privacy Budgets (applied)
 - Accessibility
-  - UI components tested with jest‑axe; zero violations on “Flake Dashboard” and “Ingest Config”.
+  - UI components tested with jest‑axe; zero violations on "Flake Dashboard" and "Ingest Config".
 - Performance
   - Web entry bundle < 150KB gzipped; charts loaded via dynamic import; SSR for core views.
   - API: GET p95 < 150ms; POST /api/ingest p95 < 2s for 5 MB.
 - Security
   - CSP via next-safe-middleware; strict defaults with nonces.
   - Secrets only via env; provide .env.example; token hashes stored (salted), show last4 only.
-  - CodeQL weekly; Dependabot; protected main (require “ci” + CodeQL, 1 review, linear history).
+  - CodeQL weekly; Dependabot; protected main (require "ci" + CodeQL, 1 review, linear history).
 - Privacy
   - Minimal PII: store GitHub logins only; no emails; hash author names if used.
   - Redact stack traces by default; test names/paths are safe. Opt‑in for verbose logs.
@@ -228,10 +238,10 @@ External:
 - Truncate commit SHAs to 12 chars for UI; store full SHA in DB if needed for linkage.
 - Prefer team ownership via OwnerMap/CODEOWNERS over individual attribution in UI.
 
-12) Configuration & Secrets
+12) Configuration &amp; Secrets
 - Required env (server)
   - DATABASE_URL (Postgres), SESSION_SECRET, APP_BASE_URL
-  - GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALLATION_ID (for PR Bot) or PAT fallback [ASSUMPTION]
+  - GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALLATION_ID (for PR Bot) or PAT fallback for dev
 - Repository tokens
   - Generate per‑repo ingest token; persist as salted hash; display last4. Rotate on demand.
 - Feature flags
@@ -243,7 +253,7 @@ External:
 - PR Bot: comment/update success rate, rate‑limit hits
 - UI: CWV (LCP/FID/CLS), bundle size check
 
-14) Local Dev & Testing
+14) Local Dev &amp; Testing
 - Local: Next.js dev server; Postgres via Docker; seed script with sample JUnit/Jest/PyTest reports.
 - Tests: unit tests for parsers/scoring; integration test for /api/ingest; contract test for PR comment upsert (mock GitHub).
 - a11y: jest‑axe on core pages; budgets enforced in CI.
@@ -255,17 +265,17 @@ External:
 - OwnerMap enrichment: pull CODEOWNERS and directory ownership heuristics
 
 16) Open Questions (to be resolved via ADRs/PRD)
-- Exact window N and thresholds per framework [ASSUMPTION N=50].
-- PAT fallback vs GitHub App‑only for MVP PR Bot.
-- Retention defaults for TestRun beyond 30 days (configurable per repo?).
-- Slack/app permissions vs webhook‑only alerts.
+- Exact framework-specific thresholds and rerun weighting strategies (ADR-0014, ADR-0015).
+- PAT fallback vs GitHub App‑only for MVP PR Bot (ADR-0016).
+- Retention defaults for TestRun beyond 30 days (ADR-0017).
+- Telemetry event schema and opt-in strategy (ADR-0018).
 
 Appendix A — Table Sketches (DDL‑ish, indicative)
 - TestCase
   - id pk, repo_id fk, path text, name text, framework text, tags text[], created_at timestamptz
   - unique (repo_id, path, name, framework)
 - TestRun
-  - id pk, test_case_id fk, repo_id fk, commit_sha text, status enum(pass|fail|skip), duration_ms int, started_at timestamptz, created_at timestamptz, failure_reasons text[]
+  - id pk, test_case_id fk, repo_id fk, commit_sha text, status enum(pass|fail|skip), duration_ms int, started_at timestamptz, rerun_count int default 0, created_at timestamptz, failure_reasons text[]
   - index (repo_id, started_at desc); index (test_case_id, started_at desc)
 - FlakeScore
   - id pk, test_case_id fk unique, window_n int, pass_rate float, volatility float, recency_fail float, clustering float, score int, class text, updated_at timestamptz
@@ -277,7 +287,7 @@ Appendix A — Table Sketches (DDL‑ish, indicative)
   - id pk, gh_id bigint, name text, owner text, default_branch text, visibility enum(public|private), created_at timestamptz
 
 Assumptions
-- Hosting: dev DB via Neon/Supabase; production choice deferred (ADR later). [ASSUMPTION]
-- Tokens: per‑repo tokens stored as salted hashes; HMAC required on ingest. [ASSUMPTION]
-- Limits: 5 MB ingest payload; N=50 scoring window; action threshold F≥60. [ASSUMPTION]
-- PR Bot: GitHub App minimal permissions; PAT fallback allowed for demo only. [ASSUMPTION]
+- Hosting: dev DB via Neon/Supabase; production choice deferred (ADR later).
+- Tokens: per‑repo tokens stored as salted hashes; HMAC required on ingest.
+- Limits: 5 MB ingest payload; framework-specific scoring windows; action threshold F≥60.
+- PR Bot: GitHub App minimal permissions; PAT fallback allowed for demo only.
