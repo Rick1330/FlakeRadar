@@ -109,6 +109,7 @@
       "title": "@flakeradar/ui repo created with CI and a11y baseline",
       "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
       "wu": "WU-101",
+      "repo": "rick1330/flakeradar-ui",
       "acceptanceCriteria": [
         "Public repo rick1330/flakeradar-ui created",
         "CI 'ci' workflow runs typecheck/lint/test/build/a11y",
@@ -122,6 +123,7 @@
       "title": "Core components shipped (a11y-first)",
       "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
       "wu": "WU-102",
+      "repo": "rick1330/flakeradar-ui",
       "acceptanceCriteria": [
         "Button, Input, Select, Tabs, Table, Alert, Dialog, Badge, Tooltip implemented",
         "jest-axe zero violations on stories",
@@ -134,6 +136,7 @@
       "title": "Next.js app scaffold with budgets and CSP",
       "labels": ["gate:B", "persona:dev", "module:ui", "priority:p1"],
       "wu": "WU-103",
+      "repo": "rick1330/flakeradar-web",
       "acceptanceCriteria": [
         "App Router scaffold with /, /ingest, /dashboard routes",
         "next-safe-middleware CSP configured",
@@ -146,6 +149,7 @@
       "title": "CI wiring + branch protections",
       "labels": ["gate:B", "persona:em", "module:docs", "priority:p1"],
       "wu": "WU-104",
+      "repo": "rick1330/flakeradar-web",
       "acceptanceCriteria": [
         "CI 'ci' + CodeQL required on main",
         "Dependabot enabled",
