@@ -185,3 +185,13 @@ Format
 - Follow-ups
   - Apply issue seeds delta if needed
   - Begin Gate B UI library and web app scaffold preparation
+
+2025-10-10 • WU‑018 • Rick1330/FlakeRadar • Route Gate B stories to target repos in issues/seed.json
+- What/Why
+  - Updated issues/seed.json to add repo fields for ST-101..104 to route them to the correct repositories (flakeradar-ui and flakeradar-web). This enables the seed workflow to create issues in the appropriate repositories when the PR is merged.
+- Artifacts/Links
+  - Modified: issues/seed.json (added repo fields for ST-101..ST-104)
+  - Created PR: https://github.com/Rick1330/FlakeRadar/pull/52
+- Follow-ups
+  - Merge PR to apply routing changes
+  - Begin Gate B UI library and web app scaffold preparation

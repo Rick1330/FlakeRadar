@@ -1,5 +1,5 @@
 {
-  "lastWU": 17,
-  "openPRs": [],
-  "nextWUs": ["WU-018 Apply issue seeds delta", "WU-019 Gate B UI library scaffold", "WU-020 Next.js app scaffold with budgets"]
+  "lastWU": 18,
+  "openPRs": ["https://github.com/Rick1330/FlakeRadar/pull/52"],
+  "nextWUs": ["WU-019 Gate B UI library scaffold", "WU-020 Next.js app scaffold with budgets"]
 }
