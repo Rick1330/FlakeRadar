@@ -167,3 +167,21 @@ Format
   - Modified: issues/seed.json (merged delta if present)
 - Follow-ups
   - Seed applies on main; prepare Research Brief v1.1 and doc revisions
+
+2025-10-10 • WU‑017 • rick1330/flakeradar-program • Research Brief v1.1 + doc updates + ADRs
+- What/Why
+  - Conducted comprehensive research on CI landscape, flaky test detection heuristics, OSS governance, privacy compliance, and competitive analysis. Updated Charter, Architecture Brief, and Compliance Brief to v1.1 with framework-specific parameters, enhanced telemetry schema, and refined retention policies. Created 5 new ADRs addressing framework-specific scoring, rerun weighting, PR bot authentication, data retention hierarchy, and telemetry event schema.
+- Artifacts/Links
+  - Added: Research Brief v1.1 (comprehensive market analysis and recommendations)
+  - Modified: docs/01-charter.md (v1.1 with OKR refinements and scope clarifications)
+  - Modified: docs/03-architecture-brief.md (v1.1 with framework-specific parameters and enhanced ingestion design)
+  - Modified: docs/06-compliance-brief.md (v1.1 with structured telemetry schema and retention table)
+  - Added: adr/0014-framework-specific-scoring-parameters.md
+  - Added: adr/0015-rerun-weighting-strategy.md
+  - Added: adr/0016-pr-bot-authentication-policy.md
+  - Added: adr/0017-data-retention-hierarchy-and-purge-strategy.md
+  - Added: adr/0018-telemetry-event-schema-and-opt-in-defaults.md
+  - Modified: docs/DECISIONS.md (updated ADR index)
+- Follow-ups
+  - Apply issue seeds delta if needed
+  - Begin Gate B UI library and web app scaffold preparation

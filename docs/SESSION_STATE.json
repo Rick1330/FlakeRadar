@@ -1,5 +1,5 @@
 {
-  "lastWU": 15,
+  "lastWU": 17,
   "openPRs": [],
-  "nextWUs": ["WU-016 Seed delta applies (CI)", "WU-017 Research Brief v1.1", "WU-018 Docs v1.1 + ADRs"]
+  "nextWUs": ["WU-018 Apply issue seeds delta", "WU-019 Gate B UI library scaffold", "WU-020 Next.js app scaffold with budgets"]
 }

@@ -23,3 +23,8 @@ Index
 - 0011 • Flake Scoring Heuristics v0.1 Methodology • Proposed • 2025-10-10
 - 0012 • CI Provider Integration Priorities • Proposed • 2025-10-10
 - 0013 • Data Retention and Privacy Policies • Proposed • 2025-10-10
+- 0014 • Framework-Specific Scoring Parameters • Proposed • 2025-10-10
+- 0015 • Rerun Weighting Strategy and Configuration • Proposed • 2025-10-10
+- 0016 • PR Bot Authentication Policy for MVP • Proposed • 2025-10-10
+- 0017 • Data Retention Hierarchy and Purge Strategy • Proposed • 2025-10-10
+- 0018 • Telemetry Event Schema and Opt-in Defaults • Proposed • 2025-10-10

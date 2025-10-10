@@ -320,6 +320,45 @@
         "Confidence scoring for ownership hints",
         "Integration with PR comments and dashboard views"
       ]
+    },
+    {
+      "id": "ST-405",
+      "epicId": "EP-003",
+      "title": "Framework-specific scoring configuration",
+      "labels": ["gate:C", "persona:dev", "module:scoring", "priority:p1"],
+      "wu": "WU-204",
+      "acceptanceCriteria": [
+        "Jest default window N=30, JUnit N=50, PyTest N=40",
+        "Repository-level overrides via /api/repos/:id/config",
+        "Framework detection during ingestion via X-FR-Framework header",
+        "Backward compatibility for existing installations"
+      ]
+    },
+    {
+      "id": "ST-406",
+      "epicId": "EP-003",
+      "title": "Rerun weighting implementation",
+      "labels": ["gate:C", "persona:dev", "module:scoring", "priority:p1"],
+      "wu": "WU-204",
+      "acceptanceCriteria": [
+        "Initial failures count full weight (1.0) even if rerun passes",
+        "Rerun-induced failures default weight 0.5, configurable per repo",
+        "X-FR-Rerun-Count header tracking during ingestion",
+        "Repository configuration API for weight overrides"
+      ]
+    },
+    {
+      "id": "ST-407",
+      "epicId": "EP-003",
+      "title": "Enhanced telemetry schema implementation",
+      "labels": ["gate:C", "persona:dev", "module:scoring", "priority:p2"],
+      "wu": "WU-205",
+      "acceptanceCriteria": [
+        "Structured event schema: ui.page_view, ingest.completed, scoring.candidates",
+        "Default disabled with FRA_TELEMETRY_ENABLED=true opt-in",
+        "DNT header respect - skip all collection when present",
+        "Hash repository identifiers unless explicit opt-in for repo names"
+      ]
     }
   ]
 }
