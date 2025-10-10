@@ -159,6 +159,10 @@ Format
   - Added: adr/0007-telemetry-boundaries-and-community-trust.md
   - Added: adr/0008-multi-tenancy-preparation-strategy.md
   - Added: adr/0009-scoring-processing-model.md
+  - Added: adr/0010-adopt-dco-vs-cla-for-contributions.md
+  - Added: adr/0011-flake-scoring-heuristics-v0-1-methodology.md
+  - Added: adr/0012-ci-provider-integration-priorities.md
+  - Added: adr/0013-data-retention-and-privacy-policies.md
   - Modified: docs/DECISIONS.md (indexed new ADRs)
   - Modified: issues/seed.json (merged delta if present)
 - Follow-ups
