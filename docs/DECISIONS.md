@@ -28,3 +28,5 @@ Index
 - 0016 • PR Bot Authentication Policy for MVP • Proposed • 2025-10-10
 - 0017 • Data Retention Hierarchy and Purge Strategy • Proposed • 2025-10-10
 - 0018 • Telemetry Event Schema and Opt-in Defaults • Proposed • 2025-10-10
+- 0019 • UI package scope and registry • Accepted • 2025-10-13
+- 0020 • Web CI check context stabilization ("ci / build") • Accepted • 2025-10-13

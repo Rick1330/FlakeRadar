@@ -195,3 +195,17 @@ Format
 - Follow-ups
   - Merge PR to apply routing changes
   - Begin Gate B UI library and web app scaffold preparation
+
+2025-10-13 • WU‑019 • Rick1330/FlakeRadar • Post-release housekeeping for @rick1330/flakeradar-ui v1.0.0
+- What/Why
+  - Completed post-release housekeeping tasks for the UI library v1.0.0 release including creating ADRs for UI package scope and web CI check stabilization, updating documentation, and ensuring proper issue labeling across repositories.
+- Artifacts/Links
+  - Added: adr/0019-ui-package-scope-and-registry.md
+  - Added: adr/0020-web-ci-check-name-stabilization.md
+  - Modified: docs/DECISIONS.md (indexed new ADRs)
+  - Modified: docs/BUILDLOG.md (added this entry)
+  - Modified: docs/SESSION_STATE.json (updated WU counter and next WUs)
+  - Modified: README.md (added UI package installation instructions)
+- Follow-ups
+  - Create PR with ADRs and README updates
+  - Continue with web PR C and PR D as outlined

@@ -56,6 +56,35 @@ How to Contribute (high‑level; details in CONTRIBUTING.md later)
 —
 Maintainers: @rick1330 (founding maintainer). More maintainers to be added via GOVERNANCE.md in Gate A.
 
+## UI Package
+
+FlakeRadar includes a lightweight, accessible UI component library built with React, TypeScript, and Tailwind CSS.
+
+### Installation (GitHub Packages)
+
+```bash
+npm config set @rick1330:registry https://npm.pkg.github.com
+npm i @rick1330/flakeradar-ui
+```
+
+Or with pnpm:
+
+```bash
+pnpm i @rick1330/flakeradar-ui
+```
+
+### Usage
+
+```javascript
+import { Button } from '@rick1330/flakeradar-ui';
+
+function App() {
+  return <Button variant="primary">Click me</Button>;
+}
+```
+
+For complete documentation and available components, see the [UI repository releases](https://github.com/rick1330/flakeradar-ui/releases).
+
 ## Product Requirements
 
 For detailed product requirements, see [PRD v1.0](docs/PRD.md).
