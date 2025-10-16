@@ -11,6 +11,7 @@ Status
 - Enforce non‑functional budgets: a11y, performance, security, privacy.
 
 2) C4 Model — Level 1 (System Context)
+```
     +-------------------+            +------------------------+
     |   Engineers       |            |     GitHub Platform    |
     | (Dev/QA/SRE/EM)   |<---------->|  PRs, Checks, Comments |
@@ -30,8 +31,9 @@ Status
     | (JUnit/Jest/PyTest|  Ingest    +------------------------+
     |   results)        |
     +-------------------+
-
-3) C4 Model — Level 2 (Containers)
+```
+4) C4 Model — Level 2 (Containers)
+```
     +---------------------------------------------------------------+
     |                      FlakeRadar System                        |
     |                                                               |
@@ -55,7 +57,7 @@ Status
     |                                      |                        |
     |                           Comments/Labels via API             |
     +---------------------------------------------------------------+
-
+```
 External:
 - GitHub Actions → POST /api/ingest (recommended mode for MVP).
 - Slack/Webhooks: optional outbound notifications.
@@ -129,6 +131,7 @@ External:
   - Normalize test metadata; store minimal data needed for scoring and trends.
   - Do not store raw logs by default; capture summarized failure reasons as small text or enum.
 - ER Outline
+  ```
         +---------+        1      *     +----------+      1       *     +-----------+
         |  Repo   |--------------------->| TestCase |-------------------->| TestRun   |
         +---------+                      +----------+                      +-----------+
@@ -168,6 +171,7 @@ External:
         | source    |  (CODEOWNERS|manual)
         | created_at|
         +-----------+
+  ```
 - Keys &amp; indexes
   - TestCase unique (repo_id, path, name, framework)
   - TestRun index (repo_id, started_at desc), index (test_case_id, started_at desc)
